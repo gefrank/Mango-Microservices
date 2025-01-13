@@ -11,6 +11,9 @@ builder.Services.AddDbContext<AppDbContext>(option =>
     option.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
 });
 
+// Add AutoMapper to the services collection and look for configurations automatically
+builder.Services.AddAutoMapper(typeof(Program)); 
+
 builder.Services.AddControllers();
 
 builder.Services.AddSwaggerGen();
@@ -40,4 +43,19 @@ app.MapControllers();
 
 // Middleware Zone - END
 
+ApplyMigration();
+
 app.Run();
+
+void ApplyMigration()
+{
+    // Check for any pending migrations and automatically apply them
+    using (var scope = app.Services.CreateScope())
+    {
+        var _db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        if (_db.Database.GetPendingMigrations().Any())
+        {
+            _db.Database.Migrate();
+        }
+    }
+}
