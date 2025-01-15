@@ -13,12 +13,15 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddHttpClient(); // This is the main thing.
 builder.Services.AddHttpClient<ICouponService, CouponService>();
+builder.Services.AddHttpClient<IAuthService, AuthService>();
 SD.CouponAPIBase = builder.Configuration["ServiceUrls:CouponAPI"]!;
+SD.AuthAPIBase = builder.Configuration["ServiceUrls:AuthAPI"]!;
 
 // Register services for use.
 // AddScoped: A new instance of the service is created once per request.
 builder.Services.AddScoped<IBaseService, BaseService>();
 builder.Services.AddScoped<ICouponService, CouponService>();
+builder.Services.AddScoped<IAuthService, AuthService>();
 
 // Services Zone - END
 
