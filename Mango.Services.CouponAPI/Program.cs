@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Text;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Mango.Services.CouponAPI.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -70,6 +71,9 @@ builder.Services.AddAuthentication(x =>
         ValidateAudience = true
     };
 });
+
+builder.AddAppAuthentication();
+
 builder.Services.AddAuthorization();
 
 
