@@ -128,11 +128,11 @@ namespace Mango.Web.Controllers
 
             identity.AddClaim(new Claim(ClaimTypes.Name,
                 jwt.Claims.FirstOrDefault(u => u.Type == JwtRegisteredClaimNames.Email).Value));
-            var roleClaim = jwt.Claims.FirstOrDefault(u => u.Type == "role");
-            if (roleClaim != null)
-            {
-                identity.AddClaim(new Claim(ClaimTypes.Role, roleClaim.Value));
-            }
+            // Claim type of Role allows you to use the Authorize attribute like [Authorize(Roles = SD.RoleAdmin)]
+            // This is automatically taken care becuase we add a role to the ClaimsPrincipal...
+            identity.AddClaim(new Claim(ClaimTypes.Role,
+                jwt.Claims.FirstOrDefault(u => u.Type == "role").Value));
+
 
             // create a ClaimsPrincipal object using the identity
             var principal = new ClaimsPrincipal(identity);
@@ -141,7 +141,7 @@ namespace Mango.Web.Controllers
             await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
         }
 
-
+        
 
     }
 }
