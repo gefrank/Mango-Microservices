@@ -1,10 +1,8 @@
-using Mango.Services.CouponAPI.Data;
+using Mango.Services.ProductAPI.Data;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
-using System.Text;
-using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using Mango.Services.CouponAPI.Extensions;
+using Mango.Services.ProductAPI.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,10 +14,9 @@ builder.Services.AddDbContext<AppDbContext>(option =>
     option.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
 });
 
-// Add AutoMapper to the services collection and look for configurations automatically
-builder.Services.AddAutoMapper(typeof(Program)); 
-
 builder.Services.AddControllers();
+// Add AutoMapper to the services collection and look for configurations automatically
+builder.Services.AddAutoMapper(typeof(Program));
 
 // Default settings to add Authorization to Swagger
 builder.Services.AddSwaggerGen(option =>
@@ -55,8 +52,8 @@ builder.Services.AddAuthorization();
 
 // Middleware Zone - BEGIN
 
-var app = builder.Build();
 
+var app = builder.Build();
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
@@ -80,7 +77,6 @@ app.MapControllers();
 ApplyMigration();
 
 app.Run();
-
 void ApplyMigration()
 {
     // Check for any pending migrations and automatically apply them
