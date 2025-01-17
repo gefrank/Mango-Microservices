@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using Mango.Services.ShoppingCartAPI.Extensions;
+using Mango.Services.ShoppingCartAPI.Service;
+using Mango.Services.ShoppingCartAPI.Service.IService;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,6 +19,11 @@ builder.Services.AddDbContext<AppDbContext>(option =>
 builder.Services.AddControllers();
 // Add AutoMapper to the services collection and look for configurations automatically
 builder.Services.AddAutoMapper(typeof(Program));
+builder.Services.AddScoped<IProductService, ProductService>();
+
+// Add Http Client to interservice Product API.
+builder.Services.AddHttpClient("Product", x => x.BaseAddress =
+    new Uri(builder.Configuration["ServiceUrls:ProductAPI"]));
 
 // Default settings to add Authorization to Swagger
 builder.Services.AddSwaggerGen(option =>
