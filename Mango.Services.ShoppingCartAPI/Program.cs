@@ -20,10 +20,13 @@ builder.Services.AddControllers();
 // Add AutoMapper to the services collection and look for configurations automatically
 builder.Services.AddAutoMapper(typeof(Program));
 builder.Services.AddScoped<IProductService, ProductService>();
+builder.Services.AddScoped<ICouponService, CouponService>();
 
 // Add Http Client to interservice Product API.
 builder.Services.AddHttpClient("Product", x => x.BaseAddress =
     new Uri(builder.Configuration["ServiceUrls:ProductAPI"]));
+builder.Services.AddHttpClient("Coupon", x => x.BaseAddress =
+    new Uri(builder.Configuration["ServiceUrls:CouponAPI"]));
 
 // Default settings to add Authorization to Swagger
 builder.Services.AddSwaggerGen(option =>
