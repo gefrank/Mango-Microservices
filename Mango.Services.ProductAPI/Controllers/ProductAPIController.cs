@@ -9,8 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Mango.Services.ProductAPI.Controllers
 {
     [Route("api/product")]
-    [ApiController]
-    [Authorize]
+    [ApiController]    
     public class ProductAPIController : ControllerBase
     {
         private readonly AppDbContext _db;
