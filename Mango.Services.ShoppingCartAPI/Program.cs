@@ -5,6 +5,7 @@ using Microsoft.OpenApi.Models;
 using Mango.Services.ShoppingCartAPI.Extensions;
 using Mango.Services.ShoppingCartAPI.Service;
 using Mango.Services.ShoppingCartAPI.Service.IService;
+using Mango.Services.ShoppingCartAPI.Utility;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,13 +21,16 @@ builder.Services.AddControllers();
 // Add AutoMapper to the services collection and look for configurations automatically
 builder.Services.AddAutoMapper(typeof(Program));
 builder.Services.AddScoped<IProductService, ProductService>();
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<BackendApiAuthenticationHttpClientHandler>();
 builder.Services.AddScoped<ICouponService, CouponService>();
 
 // Add Http Client to interservice Product API.
+// BackendApiAuthenticationHttpClientHandler passes the token from one service to another.
 builder.Services.AddHttpClient("Product", x => x.BaseAddress =
-    new Uri(builder.Configuration["ServiceUrls:ProductAPI"]));
+    new Uri(builder.Configuration["ServiceUrls:ProductAPI"])).AddHttpMessageHandler<BackendApiAuthenticationHttpClientHandler>();
 builder.Services.AddHttpClient("Coupon", x => x.BaseAddress =
-    new Uri(builder.Configuration["ServiceUrls:CouponAPI"]));
+    new Uri(builder.Configuration["ServiceUrls:CouponAPI"])).AddHttpMessageHandler<BackendApiAuthenticationHttpClientHandler>();
 
 // Default settings to add Authorization to Swagger
 builder.Services.AddSwaggerGen(option =>
