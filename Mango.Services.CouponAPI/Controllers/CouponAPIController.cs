@@ -10,7 +10,7 @@ namespace Mango.Services.CouponAPI.Controllers
 {
     [Route("api/coupon")]
     [ApiController]
-    [Authorize]
+    // [Authorize]
     public class CouponAPIController : ControllerBase
     {
         private readonly AppDbContext _db;
@@ -58,12 +58,12 @@ namespace Mango.Services.CouponAPI.Controllers
         }
 
         [HttpGet]
-        [Route("GetByCode/{code}")]
-        public ResponseDTO GetByCode(string code)
+        [Route("GetByCode/{couponCode}")]
+        public ResponseDTO GetByCode(string couponCode)
         {
             try
             {
-                Coupon coupon = _db.Coupons.FirstOrDefault(x => x.CouponCode.ToLower() == code)!;
+                Coupon coupon = _db.Coupons.FirstOrDefault(x => x.CouponCode.ToLower() == couponCode.ToLower())!;
                 if (coupon == null)
                 {
                     _response.IsSuccess = false;
