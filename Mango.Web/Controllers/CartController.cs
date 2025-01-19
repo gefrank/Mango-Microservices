@@ -34,11 +34,25 @@ namespace Mango.Web.Controllers
         }
 
         public async Task<IActionResult> ApplyCoupon(CartDTO cartDTO)
-        {      
+        {                  
             ResponseDTO? response = await _cartService.ApplyCouponAsync(cartDTO);
             if (response != null && response.IsSuccess)
             {
                 TempData["success"] = "Cart updated succesfully";
+                return RedirectToAction(nameof(CartIndex));
+            }
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> EmailCart(CartDTO cartDto)
+        {
+            CartDTO cart = await LoadCartDTOBasedOnLoggedInUser();
+            cart.CartHeader.Email = User.Claims.Where(u => u.Type == JwtRegisteredClaimNames.Email)?.FirstOrDefault()?.Value;
+            ResponseDTO? response = await _cartService.EmailCart(cart);
+            if (response != null & response.IsSuccess)
+            {
+                TempData["success"] = "Email will be processed and sent shortly.";
                 return RedirectToAction(nameof(CartIndex));
             }
             return View();
