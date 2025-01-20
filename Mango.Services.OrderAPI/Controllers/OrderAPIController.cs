@@ -2,6 +2,7 @@
 using Mango.MessageBus;
 using Mango.Services.OrderAPI.Data;
 using Mango.Services.OrderAPI.Models;
+using Mango.Services.OrderAPI.Models.Dto;
 using Mango.Services.OrderAPI.Models.DTO;
 using Mango.Services.OrderAPI.Service.IService;
 using Mango.Services.OrderAPI.Utility;
@@ -72,8 +73,7 @@ namespace Mango.Services.OrderAPI.Controllers
                     SuccessUrl = stripeRequestDto.ApprovedUrl,
                     CancelUrl = stripeRequestDto.CancelUrl,
                     LineItems = new List<SessionLineItemOptions>(),
-                    Mode = "payment",
-
+                    Mode = "payment"                  
                 };
 
                 var DiscountsObj = new List<SessionDiscountOptions>()
@@ -125,45 +125,45 @@ namespace Mango.Services.OrderAPI.Controllers
         }
 
 
-        //[Authorize]
-        //[HttpPost("ValidateStripeSession")]
-        //public async Task<ResponseDTO> ValidateStripeSession([FromBody] int orderHeaderId)
-        //{
-        //    try
-        //    {
-        //        OrderHeader orderHeader = _db.OrderHeader.First(u => u.OrderHeaderId == orderHeaderId);
+        [Authorize]
+        [HttpPost("ValidateStripeSession")]
+        public async Task<ResponseDTO> ValidateStripeSession([FromBody] int orderHeaderId)
+        {
+            try
+            {
+                OrderHeader orderHeader = _db.OrderHeader.First(u => u.OrderHeaderId == orderHeaderId);
 
-        //        var service = new SessionService();
-        //        Session session = service.Get(orderHeader.StripeSessionId);
+                var service = new SessionService();
+                Session session = service.Get(orderHeader.StripeSessionId);
 
-        //        var paymentIntentService = new PaymentIntentService();
-        //        PaymentIntent paymentIntent = paymentIntentService.Get(session.PaymentIntentId);
+                var paymentIntentService = new PaymentIntentService();
+                PaymentIntent paymentIntent = paymentIntentService.Get(session.PaymentIntentId);
 
-        //        if (paymentIntent.Status == "succeeded")
-        //        {
-        //            //then payment was successful
-        //            orderHeader.PaymentIntentId = paymentIntent.Id;
-        //            orderHeader.Status = SD.Status_Approved;
-        //            _db.SaveChanges();
-        //            RewardsDto rewardsDto = new()
-        //            {
-        //                OrderId = orderHeader.OrderHeaderId,
-        //                RewardsActivity = Convert.ToInt32(orderHeader.OrderTotal),
-        //                UserId = orderHeader.UserId
-        //            };
-        //            string topicName = _configuration.GetValue<string>("TopicAndQueueNames:OrderCreatedTopic");
-        //            await _messageBus.PublishMessage(rewardsDto, topicName);
-        //            _response.Result = _mapper.Map<OrderHeaderDto>(orderHeader);
-        //        }
+                if (paymentIntent.Status == "succeeded")
+                {
+                    //then payment was successful
+                    orderHeader.PaymentIntentId = paymentIntent.Id;
+                    orderHeader.Status = SD.Status_Approved;
+                    _db.SaveChanges();
+                    //RewardsDTO rewardsDto = new()
+                    //{
+                    //    OrderId = orderHeader.OrderHeaderId,
+                    //    RewardsActivity = Convert.ToInt32(orderHeader.OrderTotal),
+                    //    UserId = orderHeader.UserId
+                    //};
+                    //string topicName = _configuration.GetValue<string>("TopicAndQueueNames:OrderCreatedTopic");
+                    //await _messageBus.PublishMessage(rewardsDto, topicName);
+                    _response.Result = _mapper.Map<OrderHeaderDTO>(orderHeader);
+                }
 
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        _response.Message = ex.Message;
-        //        _response.IsSuccess = false;
-        //    }
-        //    return _response;
-        //}
+            }
+            catch (Exception ex)
+            {
+                _response.Message = ex.Message;
+                _response.IsSuccess = false;
+            }
+            return _response;
+        }
 
     }
 }

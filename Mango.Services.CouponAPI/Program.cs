@@ -5,6 +5,7 @@ using System.Text;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Mango.Services.CouponAPI.Extensions;
+using Stripe;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -67,6 +68,8 @@ if (app.Environment.IsDevelopment())
         c.RoutePrefix = "swagger"; //Need this to run in HTTPS
     });
 }
+
+StripeConfiguration.ApiKey = builder.Configuration.GetSection("Stripe:SecretKey").Get<string>();
 
 app.UseHttpsRedirection();
 
