@@ -1,5 +1,6 @@
 ﻿using Azure.Messaging.ServiceBus;
 using Mango.Services.EmailAPI.Models.DTO;
+using Mango.Services.EmailAPI.Services;
 using Newtonsoft.Json;
 using System.Text;
 
@@ -10,11 +11,13 @@ namespace Mango.Services.EmailAPI.Messaging
         private readonly string serviceBusConnectionString;
         private readonly string emailCartQueue;
         private readonly IConfiguration _configuration;
+        // We want the email service that is registered with the singleton implementation.
+        private readonly EmailService _emailService;
 
         // Listens to the EmailShoppingCartQueue
         private ServiceBusProcessor _emailCartProcessor;
 
-        public AzureServiceBusConsumer(IConfiguration configuration)
+        public AzureServiceBusConsumer(IConfiguration configuration, EmailService emailService)
         {
             _configuration = configuration;
 
@@ -25,6 +28,8 @@ namespace Mango.Services.EmailAPI.Messaging
             var client = new ServiceBusClient(serviceBusConnectionString);
 
             _emailCartProcessor = client.CreateProcessor(emailCartQueue);
+
+            _emailService = emailService;
         }
 
         public async Task Start()
@@ -50,8 +55,8 @@ namespace Mango.Services.EmailAPI.Messaging
             CartDTO objMessage = JsonConvert.DeserializeObject<CartDTO>(body);
             try
             {
-                // TODO Try to log email,
-                
+                await _emailService.EmailCartAndLog(objMessage);
+
                 // says we can remove the message from our queue
                 await args.CompleteMessageAsync(args.Message);
             }
