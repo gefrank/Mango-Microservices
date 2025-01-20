@@ -7,6 +7,8 @@ using Mango.Services.OrderAPI.Service;
 using Mango.Services.OrderAPI.Service.IService;
 using Mango.Services.OrderAPI.Utility;
 using Mango.MessageBus;
+using Stripe;
+using ProductService = Mango.Services.OrderAPI.Service.ProductService;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -77,6 +79,8 @@ if (app.Environment.IsDevelopment())
         c.RoutePrefix = "swagger"; //Need this to run in HTTPS
     });
 }
+
+StripeConfiguration.ApiKey = builder.Configuration.GetSection("Stripe:SecretKey").Get<string>();
 
 app.UseHttpsRedirection();
 
