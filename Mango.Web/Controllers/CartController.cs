@@ -10,9 +10,12 @@ namespace Mango.Web.Controllers
     public class CartController : Controller
     {
         private readonly ICartService _cartService;
-        public CartController(ICartService cartService)
+        private readonly IOrderService _orderService;
+
+        public CartController(ICartService cartService, IOrderService orderService)
         {
             _cartService = cartService;
+            _orderService = orderService;
         }
 
         [Authorize]
@@ -26,6 +29,32 @@ namespace Mango.Web.Controllers
         {
             return View(await LoadCartDTOBasedOnLoggedInUser());
         }
+
+        [HttpPost]
+        [ActionName("Checkout")]
+        public async Task<IActionResult> Checkout(CartDTO cartDTO)
+        {
+            CartDTO cart = await LoadCartDTOBasedOnLoggedInUser();
+
+            cart.CartHeader.Phone = cartDTO.CartHeader.Phone;
+            cart.CartHeader.Email = cartDTO.CartHeader.Email;
+            cart.CartHeader.Name = cartDTO.CartHeader.Name;
+
+            var response = await _orderService.CreateOrder(cart);
+            OrderHeaderDTO orderHeaderDto = JsonConvert.DeserializeObject<OrderHeaderDTO>(Convert.ToString(response.Result));
+
+            if (response != null && response.IsSuccess)
+            {
+                // TODO Get Stripe Session and Redirect to Stripe to place order
+
+
+            }
+
+            return View();
+
+
+        }
+
 
 
         public async Task<IActionResult> Remove(int cartDetailsId)
