@@ -1,7 +1,6 @@
-﻿using Mango.Services.EmailAPI.Messaging;
-using System.Reflection.Metadata;
+﻿using Mango.Services.RewardAPI.Messaging;
 
-namespace Mango.Services.EmailAPI.Extension
+namespace Mango.Services.RewardAPI.Extension
 {
     public static class ApplicationBuilderExtensions
     {

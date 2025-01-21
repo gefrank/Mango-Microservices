@@ -145,14 +145,17 @@ namespace Mango.Services.OrderAPI.Controllers
                     orderHeader.PaymentIntentId = paymentIntent.Id;
                     orderHeader.Status = SD.Status_Approved;
                     _db.SaveChanges();
-                    //RewardsDTO rewardsDto = new()
-                    //{
-                    //    OrderId = orderHeader.OrderHeaderId,
-                    //    RewardsActivity = Convert.ToInt32(orderHeader.OrderTotal),
-                    //    UserId = orderHeader.UserId
-                    //};
-                    //string topicName = _configuration.GetValue<string>("TopicAndQueueNames:OrderCreatedTopic");
-                    //await _messageBus.PublishMessage(rewardsDto, topicName);
+                    RewardsDTO rewardsDto = new()
+                    {
+                        OrderId = orderHeader.OrderHeaderId,
+                        RewardsActivity = Convert.ToInt32(orderHeader.OrderTotal),
+                        UserId = orderHeader.UserId
+                    };
+                    // Publish message to Order Created Topic, this will notify the two subscribers, OrderCreatedEmail and OrderCreatedRewardsUpdate
+                    // and the Listeners will respond accordingly.
+                    string topicName = _configuration.GetValue<string>("TopicAndQueueNames:OrderCreatedTopic");
+                    string serviceBusConnection = _configuration.GetValue<string>("ConnectionStrings:ServiceBusConnectionString");
+                    await _messageBus.PublishMessage(rewardsDto, topicName, serviceBusConnection);
                     _response.Result = _mapper.Map<OrderHeaderDTO>(orderHeader);
                 }
 
