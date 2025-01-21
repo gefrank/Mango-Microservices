@@ -37,7 +37,7 @@ namespace Mango.Web.Service
             return await _baseService.SendAsync(new RequestDTO()
             {
                 ApiType = SD.ApiType.GET,
-                Url = SD.OrderAPIBase + "/api/order/GetOrders?userId=" + userId
+                Url = $"{SD.OrderAPIBase}/api/order/GetOrders?userId={userId}"
             });
         }
 
