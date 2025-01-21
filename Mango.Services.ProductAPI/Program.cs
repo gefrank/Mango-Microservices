@@ -69,6 +69,8 @@ app.UseHttpsRedirection();
 
 app.UseAuthentication();
 app.UseAuthorization();
+// Without this app would ignore wwwroot folder
+app.UseStaticFiles();
 
 app.MapControllers();
 
