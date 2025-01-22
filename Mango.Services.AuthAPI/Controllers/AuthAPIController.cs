@@ -1,5 +1,6 @@
 ﻿using Mango.MessageBus;
 using Mango.Services.AuthAPI.Models.DTO;
+using Mango.Services.AuthAPI.RabbitMQSender;
 using Mango.Services.AuthAPI.Service.IService;
 using Microsoft.AspNetCore.Mvc;
 
@@ -10,14 +11,14 @@ namespace Mango.Services.AuthAPI.Controllers
     public class AuthAPIController : ControllerBase
     {
         private readonly IAuthService _authService;
-        private readonly IMessageBus _messageBus;
+        private readonly IRabbitMQAuthMessageSender _rabbitMQAuthMessageSender;
         private readonly IConfiguration _configuration;
         protected ResponseDTO _response;
-        public AuthAPIController(IAuthService authService, IMessageBus messageBus, IConfiguration configuration)
+        public AuthAPIController(IAuthService authService, IRabbitMQAuthMessageSender rabbitMQAuthMessageSender, IConfiguration configuration)
         {
             _authService = authService;
             _response = new();
-            _messageBus = messageBus;
+            _rabbitMQAuthMessageSender = rabbitMQAuthMessageSender;
             _configuration = configuration;
         }
 
@@ -32,8 +33,7 @@ namespace Mango.Services.AuthAPI.Controllers
                 _response.Message = errorMessage;
                 return BadRequest(errorMessage);
             }
-            await _messageBus.PublishMessage(model.Email, _configuration.GetValue<string>("TopicAndQueueNames:RegisterUserQueue"),
-                                                          _configuration.GetValue<string>("ConnectionStrings:ServiceBusConnectionString"));
+            _rabbitMQAuthMessageSender.SendMessage(model.Email, _configuration.GetValue<string>("TopicAndQueueNames:RegisterUserQueue"));
 
             return Ok(_response);
         }

@@ -20,6 +20,7 @@ optionBuilder.UseSqlServer(builder.Configuration.GetConnectionString("DefaultCon
 builder.Services.AddSingleton(new EmailService(optionBuilder.Options));
 
 
+builder.Services.AddHostedService<RabbitMQAutConsumer>();
 // Singleton because we only want one object for different requests.
 builder.Services.AddSingleton<IAzureServiceBusConsumer, AzureServiceBusConsumer>();
 
