@@ -4,6 +4,10 @@ using Microsoft.EntityFrameworkCore;
 using Mango.Blazor.Components;
 using Mango.Blazor.Components.Account;
 using Mango.Blazor.Data;
+using Mango.Blazor.Service;
+using Mango.Blazor.Service.IService;
+using Mango.Blazor.Utility;
+using Microsoft.AspNetCore.Authentication.Cookies;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -34,6 +38,32 @@ builder.Services.AddIdentityCore<ApplicationUser>(options => options.SignIn.Requ
     .AddDefaultTokenProviders();
 
 builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
+
+// Add HTTP Client services
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddHttpClient();
+
+builder.Services.AddHttpClient<ICouponService, CouponService>();
+builder.Services.AddHttpClient<IProductService, ProductService>();
+builder.Services.AddHttpClient<ICartService, CartService>();
+builder.Services.AddHttpClient<IOrderService, OrderService>();
+builder.Services.AddHttpClient<IAuthService, AuthService>();
+
+SD.CouponAPIBase = builder.Configuration["ServiceUrls:CouponAPI"]!;
+SD.AuthAPIBase = builder.Configuration["ServiceUrls:AuthAPI"]!;
+SD.ProductAPIBase = builder.Configuration["ServiceUrls:ProductAPI"]!;
+SD.ShoppingCartAPIBase = builder.Configuration["ServiceUrls:ShoppingCartAPI"]!;
+SD.OrderAPIBase = builder.Configuration["ServiceUrls:OrderAPI"]!;
+
+// Register services for use
+builder.Services.AddScoped<IBaseService, BaseService>();
+builder.Services.AddScoped<ICouponService, CouponService>();
+builder.Services.AddScoped<IProductService, ProductService>();
+builder.Services.AddScoped<ICartService, CartService>();
+builder.Services.AddScoped<IOrderService, OrderService>();
+builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<ITokenProvider, TokenProvider>();
+
 
 var app = builder.Build();
 

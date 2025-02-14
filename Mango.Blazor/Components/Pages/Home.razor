@@ -1,7 +1,56 @@
 ﻿@page "/"
 
-<PageTitle>Home</PageTitle>
+@inject HttpClient Http
+@inject NavigationManager NavigationManager
+@using Mango.Blazor.Models
+@using Mango.Blazor.Service.IService
+@inject IProductService ProductService
+@using Newtonsoft.Json
 
-<h1>Hello, world!</h1>
+<form>
+    <div class="container row">
+        @if (products != null)
+        {
+            @foreach (var product in products)
+            {
+                <div class="col-12 col-md-6 col-lg-4">
+                    <div class="p-0 my-3 border rounded">
+                        <div class="card">
+                            <h3 class="card-title text-white-50 text-center py-2">@product.Name</h3>
+                            <img src="@product.ImageUrl" class="card-img-top">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between py-2">
+                                    <span class="text-danger" style="font-size:20px;">@string.Format("{0:c}", product.Price)</span>
+                                    <span class="badge bg-warning text-white p-2">@product.CategoryName</span>
+                                </div>
+                                <p class="card-text">@((MarkupString)product.Description)</p>
+                                <div class="row">
+                                    <div class="col">
+                                        <a href="productdetails/@product.ProductId" class="btn btn-success form-control">Details</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+    </div>
+</form>
 
-Welcome to your new app.
+@code {
+    private IEnumerable<ProductDTO> products;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var response = await ProductService.GetAllProductsAsync();
+        if (response != null && response.IsSuccess)
+        {
+            // products = response.Result as IEnumerable<ProductDTO>;
+            products = JsonConvert.DeserializeObject<List<ProductDTO>>(Convert.ToString(response.Result)!);
+
+            StateHasChanged(); // Notify the framework to re-render the component
+        }
+    }
+
+}
