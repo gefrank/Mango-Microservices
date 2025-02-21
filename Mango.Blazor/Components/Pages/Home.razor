@@ -1,49 +1,48 @@
 ﻿@page "/"
 
-@inject HttpClient Http
-@inject NavigationManager NavigationManager
+@inject HttpClient _http
+@inject NavigationManager _navigationManager
+@inject IProductService _productService
+@using Newtonsoft.Json
 @using Mango.Blazor.Models
 @using Mango.Blazor.Service.IService
-@inject IProductService ProductService
-@using Newtonsoft.Json
 
-<form>
-    <div class="container row">
-        @if (products != null)
+<div class="container row">
+    @if (products != null)
+    {
+        @foreach (var product in products)
         {
-            @foreach (var product in products)
-            {
-                <div class="col-12 col-md-6 col-lg-4">
-                    <div class="p-0 my-3 border rounded">
-                        <div class="card">
-                            <h3 class="card-title text-white-50 text-center py-2">@product.Name</h3>
-                            <img src="@product.ImageUrl" class="card-img-top">
-                            <div class="card-body">
-                                <div class="d-flex justify-content-between py-2">
-                                    <span class="text-danger" style="font-size:20px;">@string.Format("{0:c}", product.Price)</span>
-                                    <span class="badge bg-warning text-white p-2">@product.CategoryName</span>
-                                </div>
-                                <p class="card-text">@((MarkupString)product.Description)</p>
-                                <div class="row">
-                                    <div class="col">
-                                        <a href="productdetails/@product.ProductId" class="btn btn-success form-control">Details</a>
-                                    </div>
+            <div class="col-12 col-md-6 col-lg-4">
+                <div class="p-0 my-3 border rounded">
+                    <div class="card">
+                        <h3 class="card-title text-white-50 text-center py-2">@product.Name</h3>
+                        <img src="@product.ImageUrl" class="card-img-top">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between py-2">
+                                <span class="text-danger" style="font-size:20px;">@string.Format("{0:c}", product.Price)</span>
+                                <span class="badge bg-warning text-white p-2">@product.CategoryName</span>
+                            </div>
+                            <p class="card-text">@((MarkupString)product.Description)</p>
+                            <div class="row">
+                                <div class="col">
+                                    <button type="button" @onclick="@(() => _navigationManager.NavigateTo($"ProductDetails/{product.ProductId}"))" class="btn btn-success form-control">Details</button>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            }
+            </div>
         }
-    </div>
-</form>
+    }
+</div>
+
 
 @code {
     private IEnumerable<ProductDTO> products;
 
     protected override async Task OnInitializedAsync()
     {
-        var response = await ProductService.GetAllProductsAsync();
+        var response = await _productService.GetAllProductsAsync();
         if (response != null && response.IsSuccess)
         {
             // products = response.Result as IEnumerable<ProductDTO>;

@@ -1,0 +1,78 @@
+﻿@page "/ProductDetails/{ProductId:int}"
+@using Mango.Blazor.Models
+@using Newtonsoft.Json
+@inject NavigationManager _navigationManager
+@inject HttpClient _http
+@inject Mango.Blazor.Service.IService.IProductService _productService
+
+<EditForm Model="@product" OnValidSubmit="HandleValidSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <input type="hidden" @bind="product.ProductId" />
+    <div class="pt-4">
+        <div class="card container" style="border:1px solid #808080;">
+            <div class="card-header bg-dark text-light row" style="border-radius: 0px;">
+                <div class="col-12 col-md-6">
+                    <h1 class="text-white">@product.Name</h1>
+                </div>
+                <div class="col-12 col-md-6 text-end">
+                    <h1 class="text-warning">@string.Format("{0:c}", product.Price)</h1>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="container rounded p-2">
+                    <div class="row">
+                        <div class="col-12 col-lg-4 p-1 text-center">
+                            <img src="@product.ImageUrl" style="border-radius:35px;" width="100%" class="rounded" />
+                        </div>
+                        <div class="col-12 col-lg-8">
+                            <div class="row pl-3">
+                                <div class="col-12">
+                                    <span class="badge bg-warning text-white p-2">@product.CategoryName</span>
+                                    <p class="text-secondary pt-3">@((MarkupString)product.Description)</p>
+                                </div>
+                            </div>
+                            <div class="row mx-0">
+                                <InputNumber @bind-Value="product.Count" class="form-control" />
+                                <ValidationMessage For="@(() => product.Count)" class="text-danger" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer row bg-dark">
+                <div class="col-12 col-md-6 pb-1">
+                    <button type="button" class="btn btn-success btn-square form-control btn-lg" style="height:50px;" @onclick="NavigateToIndex">Back to List</button>
+                </div>
+                <div class="col-12 col-md-6">
+                    <button type="submit" class="btn btn-primary form-control btn-lg" style="height:50px;">Add to Cart</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</EditForm>
+
+@code {
+    private ProductDTO product = new ProductDTO();
+
+    [Parameter]
+    public int ProductId { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var response = await _productService.GetProductByIdAsync(ProductId);
+        product = JsonConvert.DeserializeObject<ProductDTO>(Convert.ToString(response.Result)!);
+    }
+
+    private void HandleValidSubmit()
+    {
+        // Handle form submission, for example:
+        // await Http.PostAsJsonAsync("api/cart", product);
+    }
+
+    private void NavigateToIndex()
+    {
+        _navigationManager.NavigateTo("/");
+    }
+}
