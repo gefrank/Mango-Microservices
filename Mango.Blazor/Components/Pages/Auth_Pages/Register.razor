@@ -1,0 +1,71 @@
+﻿@page "/register"
+@using Mango.Blazor.Models
+@inject NavigationManager Navigation
+@inject HttpClient Http
+
+<h3>Register</h3>
+
+<EditForm Model="@registrationRequest" OnValidSubmit="HandleValidSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="container border p-4">
+        <div class="row text-center p-3">
+            <h1>Register</h1>
+        </div>
+        <div class="row">
+            <div>
+                <div class="col-12 col-md-6 offset-md-3 pb-2">
+                    <InputText @bind-Value="registrationRequest.Email" class="form-control" placeholder="Email..." />
+                    <ValidationMessage For="@(() => registrationRequest.Email)" class="text-danger" />
+                </div>
+                <div class="col-12 col-md-6 offset-md-3 pb-2">
+                    <InputText @bind-Value="registrationRequest.Name" class="form-control" placeholder="Name..." />
+                    <ValidationMessage For="@(() => registrationRequest.Name)" class="text-danger" />
+                </div>
+                <div class="col-12 col-md-6 offset-md-3 pb-2">
+                    <InputText @bind-Value="registrationRequest.PhoneNumber" class="form-control" placeholder="Phone Number..." />
+                    <ValidationMessage For="@(() => registrationRequest.PhoneNumber)" class="text-danger" />
+                </div>
+                <div class="col-12 col-md-6 offset-md-3 pb-2">
+                    <InputText @bind-Value="registrationRequest.Password" type="password" class="form-control" placeholder="Password..." />
+                    <ValidationMessage For="@(() => registrationRequest.Password)" class="text-danger" />
+                </div>
+                <div class="col-12 col-md-6 offset-md-3 pb-2">
+                    <InputSelect @bind-Value="registrationRequest.Role" class="form-select">
+                        <option disabled selected>--Select Role--</option>
+                        @foreach (var role in roleList)
+                        {
+                            <option value="@role">@role</option>
+                        }
+                    </InputSelect>
+                </div>
+                <div class="col-12 col-md-6 offset-md-3 pb-2">
+                    <button type="submit" class="form-control btn btn-success">Register</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</EditForm>
+
+@code {
+    private RegistrationRequestDTO registrationRequest = new RegistrationRequestDTO();
+    private List<string> roleList = new List<string> { "Admin", "User" }; // Example roles, replace with actual roles
+
+    private async Task HandleValidSubmit()
+    {
+        // Handle the form submission logic here
+        // Example: Send registrationRequest to the server
+        var response = await Http.PostAsJsonAsync("api/auth/register", registrationRequest);
+        if (response.IsSuccessStatusCode)
+        {
+            // Handle successful registration
+            Navigation.NavigateTo("/");
+        }
+        else
+        {
+            // Handle registration failure
+            // Example: Show an error message
+        }
+    }
+}

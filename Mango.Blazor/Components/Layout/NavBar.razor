@@ -3,7 +3,6 @@
 @using System.Security.Claims
 @inject AuthenticationStateProvider AuthenticationStateProvider
 
-
 <nav class="navbar navbar-expand-md navbar-dark bg-dark pb-4 pt-4">
     <div class="container-fluid">
         <a class="navbar-brand" href="">Mango Blazor</a>
@@ -47,28 +46,28 @@
                 @if (!isAuth)
                 {
                     <li class="nav-item">
-                        <NavLink class="nav-link" href="/Auth/Login">
+                        <NavLink class="nav-link" href="/Login">
                             Login
                         </NavLink>
                     </li>
                     <li class="nav-item">
-                        <NavLink class="nav-link" href="/Auth/Register">
+                        <NavLink class="nav-link" href="/Register">
                             Register
                         </NavLink>
                     </li>
                 }
                 else
                 {
-                <li class="nav-item">
-                    <NavLink class="nav-link" href="#">
-                        Hello @(string.IsNullOrEmpty(userName) ? "User" : userName)
-                    </NavLink>
-                </li>
-                <li class="nav-item">
-                    <NavLink class="nav-link" href="/auth/Logout">
-                        Logout
-                    </NavLink>
-                </li>
+                    <li class="nav-item">
+                        <NavLink class="nav-link" href="#">
+                            Hello @(string.IsNullOrEmpty(userName) ? "User" : userName)
+                        </NavLink>
+                    </li>
+                    <li class="nav-item">
+                        <NavLink class="nav-link" href="/auth/Logout">
+                            Logout
+                        </NavLink>
+                    </li>
                 }
             </ul>
         </div>
@@ -82,11 +81,28 @@
 
     protected override async Task OnInitializedAsync()
     {
+        AuthenticationStateProvider.AuthenticationStateChanged += OnAuthenticationStateChanged;
+        await UpdateAuthenticationState();
+    }
+
+    private async void OnAuthenticationStateChanged(Task<AuthenticationState> task)
+    {
+        await UpdateAuthenticationState();
+        StateHasChanged();
+    }
+
+    private async Task UpdateAuthenticationState()
+    {
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         var user = authState.User;
 
         isAuth = user.Identity?.IsAuthenticated ?? false;
         userName = user.Identity?.Name;
         isAdmin = user.IsInRole(SD.RoleAdmin);
+    }
+
+    public void Dispose()
+    {
+        AuthenticationStateProvider.AuthenticationStateChanged -= OnAuthenticationStateChanged;
     }
 }

@@ -1,0 +1,106 @@
+﻿@page "/Login"
+@using Mango.Blazor.Models
+@using Mango.Blazor.Service.IService
+@using Mango.Blazor.Providers
+@using Mango.Blazor.Utility
+@using Newtonsoft.Json
+@using System.IdentityModel.Tokens.Jwt
+@using System.Security.Claims
+
+@inject HttpClient _http
+@inject ITokenProvider _tokenProvider
+@inject CustomAuthenticationStateProvider _authStateProvider
+@inject IAuthService _authService
+@inject NavigationManager _navigationManager
+@inject IJSRuntime JSRuntime
+
+<EditForm Model="@loginRequest" OnValidSubmit="HandleValidSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="container border p-4">
+        <div class="row text-center">
+            <h1>Login</h1>
+        </div>
+        @if (!string.IsNullOrEmpty(errorMessage))
+        {
+            <div class="row">
+                <div class="col-12 col-md-6 offset-md-3">
+                    <div class="alert alert-danger">@errorMessage</div>
+                </div>
+            </div>
+        }
+        <div class="row">
+            <div>
+                <div class="col-12 col-md-6 offset-md-3 pb-2">
+                    <InputText @bind-Value="loginRequest.UserName" class="form-control" placeholder="Username..." />
+                    <ValidationMessage For="@(() => loginRequest.UserName)" class="text-danger" />
+                </div>
+                <div class="col-12 col-md-6 offset-md-3 pb-2">
+                    <InputText @bind-Value="loginRequest.Password" type="password" class="form-control" placeholder="Password..." />
+                    <ValidationMessage For="@(() => loginRequest.Password)" class="text-danger" />
+                </div>
+                <div class="col-12 col-md-6 offset-md-3 pb-2">
+                    <button type="submit" class="form-control btn btn-success" disabled="@isLoading">
+                        @if (isLoading)
+                        {
+                            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                            <span> Loading...</span>
+                        }
+                        else
+                        {
+                            <span>Login</span>
+                        }
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</EditForm>
+
+<script>window.setCookie = function (name, value, days) {
+        var expires = "";
+        if (days) {
+            var date = new Date();
+            date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+            expires = "; expires=" + date.toUTCString();
+        }
+        document.cookie = name + "=" + (value || "") + expires + "; path=/";
+    }</script>
+
+@code {
+    private LoginRequestDTO loginRequest = new LoginRequestDTO();
+    private bool isLoading;
+    private string errorMessage;
+
+    private async Task HandleValidSubmit()
+    {
+        try
+        {
+            isLoading = true;
+            errorMessage = string.Empty;
+
+            var responseDTO = await _authService.LoginAsync(loginRequest);
+
+            if (responseDTO != null && responseDTO.IsSuccess)
+            {
+                var loginResponseDTO = JsonConvert.DeserializeObject<LoginResponseDTO>(Convert.ToString(responseDTO.Result));
+                await JSRuntime.InvokeVoidAsync("setCookie", SD.TokenCookie, loginResponseDTO.Token, 7);
+                _authStateProvider.NotifyUserAuthentication(loginResponseDTO.Token);
+                _navigationManager.NavigateTo("/");
+            }
+            else
+            {
+                errorMessage = responseDTO?.Message ?? "Login failed. Please check your credentials and try again.";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "An unexpected error occurred. Please try again.";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+}

@@ -39,7 +39,7 @@ namespace Mango.Blazor.Controllers
                         JsonConvert.DeserializeObject<LoginResponseDTO>(Convert.ToString(responseDTO.Result));
 
                 await SignInUser(loginResponseDTO);
-                _tokenProvider.SetToken(loginResponseDTO.Token);
+                await _tokenProvider.SetTokenAsync(loginResponseDTO.Token);
                 return RedirectToAction("Index", "Home");
 
             }

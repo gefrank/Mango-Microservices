@@ -4,6 +4,7 @@
 @inject NavigationManager _navigationManager
 @inject HttpClient _http
 @inject Mango.Blazor.Service.IService.IProductService _productService
+@inject Mango.Blazor.Service.IService.ICartService _cartService
 
 <EditForm Model="@product" OnValidSubmit="HandleValidSubmit">
     <DataAnnotationsValidator />
@@ -65,10 +66,35 @@
         product = JsonConvert.DeserializeObject<ProductDTO>(Convert.ToString(response.Result)!);
     }
 
-    private void HandleValidSubmit()
+    private async Task HandleValidSubmit()
     {
-        // Handle form submission, for example:
-        // await Http.PostAsJsonAsync("api/cart", product);
+        CartDTO cartDTO = new CartDTO()
+        {
+            CartHeader = new CartHeaderDTO
+            {
+                UserId = "user-id-placeholder" // TODO Replace with actual user ID
+            }
+        };
+
+        CartDetailsDTO cartDetailsDTO = new CartDetailsDTO()
+        {
+            Count = product.Count,
+            ProductId = product.ProductId,
+        };
+
+        cartDTO.CartDetails = new List<CartDetailsDTO> { cartDetailsDTO };
+
+        var response = await _cartService.UpsertCartAsync(cartDTO);
+
+        if (response.IsSuccess)
+        {
+            // Handle success, e.g., show a success message or navigate to another page
+            _navigationManager.NavigateTo("/");
+        }
+        else
+        {
+            // Handle error, e.g., show an error message
+        }
     }
 
     private void NavigateToIndex()

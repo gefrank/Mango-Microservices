@@ -2,7 +2,7 @@
 {
     public interface ITokenProvider
     {
-        void SetToken(string token);
+        Task SetTokenAsync(string token);
         string? GetToken();
         void ClearToken();
     }
