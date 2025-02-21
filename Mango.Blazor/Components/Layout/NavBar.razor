@@ -1,0 +1,92 @@
+﻿@using Mango.Blazor.Utility
+@using Microsoft.AspNetCore.Components.Authorization
+@using System.Security.Claims
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+
+<nav class="navbar navbar-expand-md navbar-dark bg-dark pb-4 pt-4">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="">Mango Blazor</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
+                aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
+            <ul class="navbar-nav flex-grow-1">
+                <li class="nav-item">
+                    <NavLink class="nav-link" href="/">
+                        Home
+                    </NavLink>
+                </li>
+                @if (isAdmin)
+                {
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            Content Management
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                            <li><NavLink class="dropdown-item" href="/Coupon/CouponIndex">Coupon</NavLink></li>
+                            <li><NavLink class="dropdown-item" href="/Product/ProductIndex">Product</NavLink></li>
+                            <li><hr class="dropdown-divider"></li>
+                        </ul>
+                    </li>
+                }
+                <li class="nav-item">
+                    <NavLink class="nav-link" href="/Order/OrderIndex">
+                        Manage Order
+                    </NavLink>
+                </li>
+                <li class="nav-item">
+                    <NavLink class="nav-link" href="/Cart/CartIndex">
+                        &nbsp; <i class="bi bi-cart"></i>&nbsp;
+                    </NavLink>
+                </li>
+            </ul>
+
+            <ul class="navbar-nav">
+                @if (!isAuth)
+                {
+                    <li class="nav-item">
+                        <NavLink class="nav-link" href="/Auth/Login">
+                            Login
+                        </NavLink>
+                    </li>
+                    <li class="nav-item">
+                        <NavLink class="nav-link" href="/Auth/Register">
+                            Register
+                        </NavLink>
+                    </li>
+                }
+                else
+                {
+                <li class="nav-item">
+                    <NavLink class="nav-link" href="#">
+                        Hello @(string.IsNullOrEmpty(userName) ? "User" : userName)
+                    </NavLink>
+                </li>
+                <li class="nav-item">
+                    <NavLink class="nav-link" href="/auth/Logout">
+                        Logout
+                    </NavLink>
+                </li>
+                }
+            </ul>
+        </div>
+    </div>
+</nav>
+
+@code {
+    private bool isAdmin;
+    private bool isAuth;
+    private string userName;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        isAuth = user.Identity?.IsAuthenticated ?? false;
+        userName = user.Identity?.Name;
+        isAdmin = user.IsInRole(SD.RoleAdmin);
+    }
+}
