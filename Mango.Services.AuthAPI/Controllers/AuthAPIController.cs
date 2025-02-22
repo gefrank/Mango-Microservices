@@ -32,8 +32,9 @@ namespace Mango.Services.AuthAPI.Controllers
                 _response.Message = errorMessage;
                 return BadRequest(errorMessage);
             }
-            await _messageBus.PublishMessage(model.Email, _configuration.GetValue<string>("TopicAndQueueNames:RegisterUserQueue"),
-                                                          _configuration.GetValue<string>("ConnectionStrings:ServiceBusConnectionString"));
+            // Publish the message to the Service Bus but not using it right now because don't want charge for the service bus
+            //await _messageBus.PublishMessage(model.Email, _configuration.GetValue<string>("TopicAndQueueNames:RegisterUserQueue"),
+            //                                              _configuration.GetValue<string>("ConnectionStrings:ServiceBusConnectionString"));
 
             return Ok(_response);
         }

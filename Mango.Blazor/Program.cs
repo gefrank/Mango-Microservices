@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.JSInterop;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -66,8 +67,7 @@ builder.Services.AddScoped<ICartService, CartService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ITokenProvider, TokenProvider>();
-
-
+builder.Services.AddScoped<IToastService, ToastService>();
 
 var app = builder.Build();
 

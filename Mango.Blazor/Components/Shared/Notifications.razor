@@ -1,0 +1,36 @@
+﻿@using Mango.Blazor.Models.Enums
+@using Mango.Blazor.Service.IService
+
+@inject IToastService ToastService
+@inject IJSRuntime JSRuntime
+@implements IDisposable
+
+@code {
+    private IDisposable? _subscription;
+
+    protected override void OnInitialized()
+    {
+        // Direct event subscription instead of .Subscribe()
+        ToastService.OnToastAdded += ShowToast;
+    }
+
+    private void ShowToast(ToastLevel level, string message, string? title = null)
+    {
+        string script = level switch
+        {
+            ToastLevel.Success => $"toastr.success('{message}')",
+            ToastLevel.Error => $"toastr.error('{message}')",
+            ToastLevel.Warning => $"toastr.warning('{message}')",
+            ToastLevel.Info => $"toastr.info('{message}')",
+            _ => $"toastr.info('{message}')"
+        };
+
+        JSRuntime.InvokeVoidAsync("eval", script);
+    }
+
+    public void Dispose()
+    {
+        // Proper event cleanup
+        ToastService.OnToastAdded -= ShowToast;
+    }
+}

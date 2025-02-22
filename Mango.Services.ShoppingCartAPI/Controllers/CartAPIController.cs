@@ -102,10 +102,11 @@ namespace Mango.Services.ShoppingCartAPI.Controllers
         {
             try
             {
-                string connectionString = _configuration.GetConnectionString("ServiceBusConnectionString")
-                     ?? throw new InvalidOperationException("Service Bus connection string is not set.");
+                // Not using it right now because don't want charge for the service bus
+                //string connectionString = _configuration.GetConnectionString("ServiceBusConnectionString")
+                //     ?? throw new InvalidOperationException("Service Bus connection string is not set.");
 
-                await _messageBus.PublishMessage(cartDTO, _configuration.GetValue<string>("TopicAndQueueNames:EmailShoppingCartQueue"), connectionString);
+                //await _messageBus.PublishMessage(cartDTO, _configuration.GetValue<string>("TopicAndQueueNames:EmailShoppingCartQueue"), connectionString);
                 _response.Result = true;
             }
             catch (Exception ex)

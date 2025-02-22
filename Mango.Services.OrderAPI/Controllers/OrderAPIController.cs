@@ -196,9 +196,10 @@ namespace Mango.Services.OrderAPI.Controllers
                     };
                     // Publish message to Order Created Topic, this will notify the two subscribers, OrderCreatedEmail and OrderCreatedRewardsUpdate
                     // and the Listeners will respond accordingly.
-                    string topicName = _configuration.GetValue<string>("TopicAndQueueNames:OrderCreatedTopic");
-                    string serviceBusConnection = _configuration.GetValue<string>("ConnectionStrings:ServiceBusConnectionString");
-                    await _messageBus.PublishMessage(rewardsDto, topicName, serviceBusConnection);
+                    // Not using it right now because don't want charge for the service bus
+                    //string topicName = _configuration.GetValue<string>("TopicAndQueueNames:OrderCreatedTopic");
+                    //string serviceBusConnection = _configuration.GetValue<string>("ConnectionStrings:ServiceBusConnectionString");
+                    //await _messageBus.PublishMessage(rewardsDto, topicName, serviceBusConnection);
                     _response.Result = _mapper.Map<OrderHeaderDTO>(orderHeader);
                 }
 

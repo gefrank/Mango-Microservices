@@ -1,9 +1,10 @@
 ﻿@inherits LayoutComponentBase
+@using Mango.Blazor.Components.Shared
 
 <div class="page">
     @*<div class="sidebar">
-        <NavMenu />
-    </div>*@
+            <NavMenu />
+        </div>*@
 
     <main>
         <article class="content px-4">
@@ -11,6 +12,8 @@
             @Body
         </article>
     </main>
+
+    <Notifications />
 </div>
 
 <div id="blazor-error-ui" data-nosnippet>

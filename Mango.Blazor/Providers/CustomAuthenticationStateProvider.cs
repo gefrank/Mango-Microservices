@@ -47,28 +47,43 @@ namespace Mango.Blazor.Providers
             var jsonBytes = ParseBase64WithoutPadding(payload);
             var keyValuePairs = JsonSerializer.Deserialize<Dictionary<string, object>>(jsonBytes);
 
-            keyValuePairs.TryGetValue(ClaimTypes.Role, out object roles);
-
-            if (roles != null)
+            // Check for both standard "role" claim and Microsoft's ClaimTypes.Role
+            if (keyValuePairs.TryGetValue("role", out object roles) ||
+                keyValuePairs.TryGetValue("http://schemas.microsoft.com/ws/2008/06/identity/claims/role", out roles))
             {
-                if (roles.ToString().Trim().StartsWith("["))
+                if (roles != null)
                 {
-                    var parsedRoles = JsonSerializer.Deserialize<string[]>(roles.ToString());
-
-                    foreach (var parsedRole in parsedRoles)
+                    if (roles.ToString().Trim().StartsWith("["))
                     {
-                        claims.Add(new Claim(ClaimTypes.Role, parsedRole));
+                        var parsedRoles = JsonSerializer.Deserialize<string[]>(roles.ToString());
+                        foreach (var parsedRole in parsedRoles)
+                        {
+                            claims.Add(new Claim(ClaimTypes.Role, parsedRole));
+                        }
+                    }
+                    else
+                    {
+                        claims.Add(new Claim(ClaimTypes.Role, roles.ToString()));
                     }
                 }
-                else
-                {
-                    claims.Add(new Claim(ClaimTypes.Role, roles.ToString()));
-                }
-
-                keyValuePairs.Remove(ClaimTypes.Role);
             }
 
-            claims.AddRange(keyValuePairs.Select(kvp => new Claim(kvp.Key, kvp.Value.ToString())));
+            // Add other claims
+            foreach (var kvp in keyValuePairs)
+            {
+                if (kvp.Key != "role" &&
+                    kvp.Key != "http://schemas.microsoft.com/ws/2008/06/identity/claims/role")
+                {
+                    claims.Add(new Claim(kvp.Key, kvp.Value.ToString()));
+                }
+            }
+
+            // Add debugging to see what claims we're getting
+            Console.WriteLine("Parsed claims:");
+            foreach (var claim in claims)
+            {
+                Console.WriteLine($"Type: {claim.Type}, Value: {claim.Value}");
+            }
 
             return claims;
         }
