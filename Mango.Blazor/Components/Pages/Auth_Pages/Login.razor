@@ -58,16 +58,6 @@
     </div>
 </EditForm>
 
-<script>window.setCookie = function (name, value, days) {
-        var expires = "";
-        if (days) {
-            var date = new Date();
-            date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
-            expires = "; expires=" + date.toUTCString();
-        }
-        document.cookie = name + "=" + (value || "") + expires + "; path=/";
-    }</script>
-
 @code {
     private LoginRequestDTO loginRequest = new LoginRequestDTO();
     private bool isLoading;
@@ -84,8 +74,8 @@
 
             if (responseDTO != null && responseDTO.IsSuccess)
             {
-                var loginResponseDTO = JsonConvert.DeserializeObject<LoginResponseDTO>(Convert.ToString(responseDTO.Result));
-                await JSRuntime.InvokeVoidAsync("setCookie", SD.TokenCookie, loginResponseDTO.Token, 7);
+                var loginResponseDTO = JsonConvert.DeserializeObject<LoginResponseDTO>(Convert.ToString(responseDTO.Result));               
+                await JSRuntime.InvokeVoidAsync("cookieHelper.setCookie", SD.TokenCookie, loginResponseDTO.Token, 7);
                 _authStateProvider.NotifyUserAuthentication(loginResponseDTO.Token);
                 _navigationManager.NavigateTo("/");
             }

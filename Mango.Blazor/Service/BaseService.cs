@@ -39,7 +39,7 @@ namespace Mango.Blazor.Service
                 // TOKEN
                 if (withBearer)
                 {
-                    var token = _tokenProvider.GetToken();
+                    var token = await _tokenProvider.GetTokenAsync();
                     message.Headers.Add("Authorization", $"Bearer {token}");
                 }
 
@@ -52,12 +52,11 @@ namespace Mango.Blazor.Service
                     foreach (var prop in requestDTO.Data.GetType().GetProperties())
                     {
                         var value = prop.GetValue(requestDTO.Data);
-                        if (value is FormFile)
+                        if (value is IFormFile formFile)  // Changed from FormFile to IFormFile
                         {
-                            var file = (FormFile)value;
-                            if (file != null)
+                            if (formFile != null)
                             {
-                                content.Add(new StreamContent(file.OpenReadStream()), prop.Name, file.FileName);
+                                content.Add(new StreamContent(formFile.OpenReadStream()), prop.Name, formFile.FileName);
                             }
                         }
                         else

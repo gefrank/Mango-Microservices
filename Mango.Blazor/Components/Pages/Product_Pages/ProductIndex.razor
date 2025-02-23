@@ -52,7 +52,7 @@
                             <td>@(item.Price.ToString("c"))</td>
                             <td>
                                 <div class="d-inline-flex gap-2">
-                                    <a href="@($"/product/edit/{item.ProductId}")" class="btn btn-success btn-md">
+                                    <a href="@($"/product/update/{item.ProductId}")" class="btn btn-success btn-md">
                                         <i class="bi bi-pencil-square"></i>&nbsp;Edit
                                     </a>
                                     <button @onclick="() => HandleDelete(item.ProductId)" class="btn btn-danger btn-md">
@@ -83,11 +83,28 @@
         if (response != null && response.IsSuccess)
         {
             Products = JsonConvert.DeserializeObject<List<ProductDTO>>(Convert.ToString(response.Result)!);
+
+            // Add cache busting to all product image URLs
+            if (Products != null)
+            {
+                foreach (var product in Products)
+                {
+                    if (!string.IsNullOrEmpty(product.ImageUrl))
+                    {
+                        product.ImageUrl = AddCacheBuster(product.ImageUrl);
+                    }
+                }
+            }
         }
         else
         {
             ToastService.ShowToast(ToastLevel.Error, response?.Message ?? "Error loading products");
         }
+    }
+
+    private string AddCacheBuster(string url)
+    {
+        return $"{url}?v={DateTime.UtcNow.Ticks}";
     }
 
     private async Task HandleDelete(int productId)
@@ -97,7 +114,7 @@
         if (response != null && response.IsSuccess)
         {
             ToastService.ShowToast(ToastLevel.Success, "Product deleted successfully");
-            await LoadProducts(); // Refresh the list
+            await LoadProducts(); // This will reload with fresh cache-busted URLs
         }
         else
         {

@@ -1,32 +1,30 @@
 ﻿using Mango.Blazor.Service.IService;
 using Mango.Blazor.Utility;
 using Microsoft.JSInterop;
-using Microsoft.AspNetCore.Http;
-using System.Threading.Tasks;
 
 namespace Mango.Blazor.Service
 {
     public class TokenProvider : ITokenProvider
     {
-        private readonly IHttpContextAccessor _contextAccessor;
         private readonly IJSRuntime _jsRuntime;
 
-        public TokenProvider(IHttpContextAccessor contextAccessor, IJSRuntime jsRuntime)
+        public TokenProvider(IJSRuntime jsRuntime)
         {
-            _contextAccessor = contextAccessor;
             _jsRuntime = jsRuntime;
         }
 
-        public void ClearToken()
+        public async Task<string?> GetTokenAsync()
         {
-            _contextAccessor.HttpContext?.Response.Cookies.Delete(SD.TokenCookie);
-        }
-
-        public string? GetToken()
-        {
-            string? token = null;
-            bool? hasToken = _contextAccessor.HttpContext?.Request.Cookies.TryGetValue(SD.TokenCookie, out token);
-            return hasToken is true ? token : null;
+            try
+            {
+                var token = await _jsRuntime.InvokeAsync<string>("cookieHelper.getCookie", SD.TokenCookie);
+                return !string.IsNullOrEmpty(token) ? token : null;
+            }
+            catch (JSException jsEx)
+            {
+                Console.Error.WriteLine($"JavaScript error: {jsEx.Message}");
+                return null;
+            }
         }
 
         public async Task SetTokenAsync(string token)
@@ -37,13 +35,19 @@ namespace Mango.Blazor.Service
             }
             catch (JSException jsEx)
             {
-                // Log the JavaScript exception
                 Console.Error.WriteLine($"JavaScript error: {jsEx.Message}");
             }
-            catch (Exception ex)
+        }
+
+        public async void ClearToken()
+        {
+            try
             {
-                // Log the general exception
-                Console.Error.WriteLine($"Error setting token: {ex.Message}");
+                await _jsRuntime.InvokeVoidAsync("cookieHelper.deleteCookie", SD.TokenCookie);
+            }
+            catch (JSException jsEx)
+            {
+                Console.Error.WriteLine($"JavaScript error: {jsEx.Message}");
             }
         }
     }

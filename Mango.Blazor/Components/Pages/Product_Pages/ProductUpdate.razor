@@ -1,5 +1,197 @@
-﻿<h3>ProductUpdate</h3>
+﻿@page "/product/update/{productId:int}"
+@using Mango.Blazor.Models
+@using Mango.Blazor.Service.IService
+@using Mango.Blazor.Models.Enums
+@using Mango.Blazor.Utility
+@using System.IO
+@using Newtonsoft.Json
+
+@inject IProductService ProductService
+@inject NavigationManager NavigationManager
+@inject IToastService ToastService
+
+<div class="container border p-3">
+    <h1 class="text-white text-center">Edit Product</h1>
+    <hr />
+    @if (Product != null)
+    {
+        <EditForm Model="Product" OnValidSubmit="HandleValidSubmit" enctype="multipart/form-data">
+            <DataAnnotationsValidator />
+            <input type="hidden" @bind-value="Product.ProductId" />
+            <div class="row">
+                <div class="col-10">
+                    <div class="row">
+                        <div class="col-2">
+                            <label class="control-label pt-2" style="font-size:20px;">Name</label>
+                        </div>
+                        <div class="col-10 pb-3">
+                            <InputText @bind-Value="Product.Name" class="form-control" />
+                            <ValidationMessage For="@(() => Product.Name)" class="text-danger" />
+                        </div>
+                        <div class="col-2">
+                            <label class="control-label pt-2" style="font-size:20px;">Category Name</label>
+                        </div>
+                        <div class="col-10 pb-3">
+                            <InputText @bind-Value="Product.CategoryName" class="form-control" />
+                            <ValidationMessage For="@(() => Product.CategoryName)" class="text-danger" />
+                        </div>
+                        <div class="col-2">
+                            <label class="control-label pt-2" style="font-size:20px;">Description</label>
+                        </div>
+                        <div class="col-10 pb-3">
+                            <InputTextArea @bind-Value="Product.Description" class="form-control" rows="5" />
+                            <ValidationMessage For="@(() => Product.Description)" class="text-danger" />
+                        </div>
+                        <div class="col-2">
+                            <label class="control-label pt-2" style="font-size:20px;">Price</label>
+                        </div>
+                        <div class="col-10 pb-3">
+                            <InputNumber @bind-Value="Product.Price" class="form-control" />
+                            <ValidationMessage For="@(() => Product.Price)" class="text-danger" />
+                        </div>
+                        <div class="col-2">
+                            <label class="control-label pt-2" style="font-size:20px;">Image</label>
+                        </div>
+                        <div class="col-10 pb-3">
+                            <InputFile OnChange="OnFileChange" class="form-control" accept=".jpg,.png" />
+                            <InputText @bind-Value="Product.ImageUrl" hidden class="form-control" />
+                            <InputText @bind-Value="Product.ImageLocalPath" hidden class="form-control" />
+                            <ValidationMessage For="@(() => Product.Image)" class="text-danger" />
+                        </div>
+                        <div class="col-5 offset-2">
+                            <a href="/product" class="btn-primary btn form-control">Back to List</a>
+                        </div>
+                        <div class="col-5">
+                            <button type="submit" class="btn btn-success form-control">Update</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-2">
+                    @if (!string.IsNullOrEmpty(imageDataUrl))
+                    {
+                        <img src="@imageDataUrl" class="w-100" alt="" />
+                    }
+                    else if (!string.IsNullOrEmpty(Product.ImageUrl))
+                    {
+                        <img src="@Product.ImageUrl" class="w-100" alt="" />
+                    }
+                </div>
+            </div>
+        </EditForm>
+    }
+</div>
 
 @code {
+    [Parameter]
+    public int ProductId { get; set; }
 
+    private ProductDTO Product { get; set; }
+    private string? imageDataUrl;
+    private string? originalImageUrl;
+    private string? originalImageLocalPath;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadProduct();
+    }
+
+    private async Task LoadProduct()
+    {
+        var response = await ProductService.GetProductByIdAsync(ProductId);
+        if (response != null && response.IsSuccess)
+        {
+            Product = JsonConvert.DeserializeObject<ProductDTO>(Convert.ToString(response.Result));
+            // Store original image paths
+            originalImageUrl = Product.ImageUrl;
+            originalImageLocalPath = Product.ImageLocalPath;
+
+            // Add cache-busting parameter to the image URL
+            if (!string.IsNullOrEmpty(Product.ImageUrl))
+            {
+                Product.ImageUrl = AddCacheBuster(Product.ImageUrl);
+            }
+        }
+        else
+        {
+            ToastService.ShowToast(ToastLevel.Error, response?.Message ?? "Error loading product");
+            NavigationManager.NavigateTo("/product");
+        }
+    }
+
+    private string AddCacheBuster(string url)
+    {
+        // Add a timestamp parameter to prevent caching
+        return $"{url}?v={DateTime.UtcNow.Ticks}";
+    }
+
+    private async Task OnFileChange(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        if (file != null)
+        {
+            // Validate file size (1MB max)
+            if (file.Size > 1024 * 1024)
+            {
+                ToastService.ShowToast(ToastLevel.Error, "File size must be less than 1MB");
+                return;
+            }
+
+            // Validate file extension
+            var extension = Path.GetExtension(file.Name).ToLower();
+            if (extension != ".jpg" && extension != ".png")
+            {
+                ToastService.ShowToast(ToastLevel.Error, "Only .jpg and .png files are allowed");
+                return;
+            }
+
+            // Create a memory stream for the file
+            var ms = new MemoryStream();
+            await file.OpenReadStream().CopyToAsync(ms);
+            ms.Position = 0;
+
+            // Create a data URL for preview only
+            var buffer = new byte[file.Size];
+            ms.Position = 0;
+            await ms.ReadAsync(buffer);
+            var imageType = file.ContentType;
+            imageDataUrl = $"data:{imageType};base64,{Convert.ToBase64String(buffer)}";
+
+            // Create IFormFile from IBrowserFile
+            Product.Image = new BrowserFileFormFile(file, ms);
+        }
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        try
+        {
+            if (Product.Image == null)
+            {
+                // If no new image was selected, preserve the original paths
+                Product.ImageUrl = originalImageUrl;
+                Product.ImageLocalPath = originalImageLocalPath;
+            }
+            else
+            {
+                // If a new image was selected, clear the paths and let the API set them
+                Product.ImageUrl = null;
+                Product.ImageLocalPath = null;
+            }
+
+            var response = await ProductService.UpdateProductAsync(Product);
+            if (response != null && response.IsSuccess)
+            {
+                ToastService.ShowToast(ToastLevel.Success, "Product updated successfully");
+                NavigationManager.NavigateTo("/product");
+            }
+            else
+            {
+                ToastService.ShowToast(ToastLevel.Error, response?.Message ?? "Error updating product");
+            }
+        }
+        catch (Exception ex)
+        {
+            ToastService.ShowToast(ToastLevel.Error, "Error updating product: " + ex.Message);
+        }
+    }
 }

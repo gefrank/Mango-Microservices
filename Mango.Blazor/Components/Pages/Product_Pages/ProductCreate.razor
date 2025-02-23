@@ -1,5 +1,135 @@
-﻿<h3>ProductCreate</h3>
+﻿@page "/product/create"
+@using Mango.Blazor.Models
+@using Mango.Blazor.Service.IService
+@using Mango.Blazor.Models.Enums
+@using Mango.Blazor.Utility
+@using System.IO
+
+@inject IProductService ProductService
+@inject NavigationManager NavigationManager
+@inject IToastService ToastService
+
+<div class="container border p-3">
+    <h1 class="text-white text-center">Create Product</h1>
+    <hr />
+    <EditForm Model="Product" OnValidSubmit="HandleValidSubmit" enctype="multipart/form-data">
+        <DataAnnotationsValidator />
+        <div class="row">
+            <div class="col-2">
+                <label class="control-label pt-2" style="font-size:20px;">Name</label>
+            </div>
+            <div class="col-10 pb-3">
+                <InputText @bind-Value="Product.Name" class="form-control" />
+                <ValidationMessage For="@(() => Product.Name)" class="text-danger" />
+            </div>
+            <div class="col-2">
+                <label class="control-label pt-2" style="font-size:20px;">Category Name</label>
+            </div>
+            <div class="col-10 pb-3">
+                <InputText @bind-Value="Product.CategoryName" class="form-control" />
+                <ValidationMessage For="@(() => Product.CategoryName)" class="text-danger" />
+            </div>
+            <div class="col-2">
+                <label class="control-label pt-2" style="font-size:20px;">Description</label>
+            </div>
+            <div class="col-10 pb-3">
+                <InputText @bind-Value="Product.Description" class="form-control" />
+                <ValidationMessage For="@(() => Product.Description)" class="text-danger" />
+            </div>
+            <div class="col-2">
+                <label class="control-label pt-2" style="font-size:20px;">Image</label>
+            </div>
+            <div class="col-10 pb-3">
+                <InputFile OnChange="OnFileChange" class="form-control" accept=".jpg,.png" />
+                <InputText @bind-Value="Product.ImageUrl" class="form-control" hidden />
+                @if (!string.IsNullOrEmpty(imageDataUrl))
+                {
+                    <div class="mt-2">
+                        <img src="@imageDataUrl" style="max-width: 200px" />
+                    </div>
+                }
+                <ValidationMessage For="@(() => Product.Image)" class="text-danger" />
+            </div>
+            <div class="col-2">
+                <label class="control-label pt-2" style="font-size:20px;">Price</label>
+            </div>
+            <div class="col-10 pb-3">
+                <InputNumber @bind-Value="Product.Price" class="form-control" />
+                <ValidationMessage For="@(() => Product.Price)" class="text-danger" />
+            </div>
+            <div class="col-5 offset-2">
+                <a href="/product" class="btn-primary btn form-control">Back to List</a>
+            </div>
+            <div class="col-5">
+                <button type="submit" class="btn btn-success form-control">Create</button>
+            </div>
+        </div>
+    </EditForm>
+</div>
 
 @code {
+    private ProductDTO Product { get; set; } = new();
+    private string? imageDataUrl;
 
+    private async Task OnFileChange(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        if (file != null)
+        {
+            // Validate file size (1MB max)
+            if (file.Size > 1024 * 1024)
+            {
+                ToastService.ShowToast(ToastLevel.Error, "File size must be less than 1MB");
+                return;
+            }
+
+            // Validate file extension
+            var extension = Path.GetExtension(file.Name).ToLower();
+            if (extension != ".jpg" && extension != ".png")
+            {
+                ToastService.ShowToast(ToastLevel.Error, "Only .jpg and .png files are allowed");
+                return;
+            }
+
+            // Create a memory stream for the file
+            var ms = new MemoryStream();
+            await file.OpenReadStream().CopyToAsync(ms);
+            ms.Position = 0;
+
+            // Create a data URL for preview only
+            var buffer = new byte[file.Size];
+            ms.Position = 0;
+            await ms.ReadAsync(buffer);
+            var imageType = file.ContentType;
+            imageDataUrl = $"data:{imageType};base64,{Convert.ToBase64String(buffer)}";
+
+            // Create IFormFile from IBrowserFile, but don't set ImageUrl
+            Product.Image = new BrowserFileFormFile(file, ms);
+
+            // Important: Don't set ImageUrl, let the API handle it
+            Product.ImageUrl = null;
+            Product.ImageLocalPath = null;
+        }
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        try
+        {
+            var response = await ProductService.CreateProductAsync(Product);
+            if (response != null && response.IsSuccess)
+            {
+                ToastService.ShowToast(ToastLevel.Success, "Product created successfully");
+                NavigationManager.NavigateTo("/product");
+            }
+            else
+            {
+                ToastService.ShowToast(ToastLevel.Error, response?.Message ?? "Error creating product");
+            }
+        }
+        catch (Exception ex)
+        {
+            ToastService.ShowToast(ToastLevel.Error, "Error creating product: " + ex.Message);
+        }
+    }
 }
