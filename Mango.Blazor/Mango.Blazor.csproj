@@ -16,7 +16,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Components\Pages\Cart_Pages\" />
     <Folder Include="Components\Pages\Coupon_Pages\" />
     <Folder Include="Components\Pages\Order_Pages\" />
   </ItemGroup>

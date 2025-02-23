@@ -1,0 +1,208 @@
+﻿@page "/cart"
+@using Mango.Blazor.Models
+@using Mango.Blazor.Service.IService
+@using Mango.Blazor.Models.Enums
+@using System.IdentityModel.Tokens.Jwt
+@using Newtonsoft.Json
+@inject NavigationManager _navigationManager
+@inject ICartService _cartService
+@inject IOrderService _orderService
+@inject IToastService _toastService
+@inject AuthenticationStateProvider _authenticationStateProvider
+
+@if (Cart?.CartHeader != null && Cart.CartDetails?.Count() > 0)
+{
+    <div class="">
+        <div class="card border mt-4 container">
+            <div class="card-header bg-dark text-light ml-0 row">
+                <div class="col-6">
+                    <h3 class="text-success"><i class="bi bi-cart"></i> &nbsp; Shopping Cart</h3>
+                </div>
+                <div class="col-6 text-end">
+                    <button @onclick="ContinueShopping" class="btn btn-outline-warning mt-2 btn-sm">Continue Shopping</button>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="d-none d-lg-block">
+                    <div class="row text-info">
+                        <div class="col-lg-2"></div>
+                        <div class="col-lg-4">Product Details</div>
+                        <div class="col-lg-2">Price</div>
+                        <div class="col-lg-2">Count</div>
+                        <div class="col-lg-2"></div>
+                    </div>
+                </div>
+                <hr />
+
+                @foreach (var cartObj in Cart.CartDetails)
+                {
+                    <div class="row h-100">
+                        <div class="col-4 col-md-2 text-center py-2">
+                            <img src="@cartObj.Product.ImageUrl" class="rounded" width="100%" />
+                        </div>
+                        <div class="col-8 col-md-5">
+                            <h5>@cartObj.Product.Name</h5>
+                            <div style="font-size:11px;">@((MarkupString)cartObj.Product.Description)</div>
+                        </div>
+                        <div class="col-3 col-md-2 pt-md-4" style="font-size:11px;">
+                            <span style="font-size:17px;">@string.Format("{0:c}", cartObj.Product.Price)</span>
+                        </div>
+                        <div class="col-3 col-md-2 pt-md-4" style="font-size:11px;">
+                            <span style="font-size:17px;">@cartObj.Count</span>
+                        </div>
+                        <div class="col-2 col-lg-1 p-0 pt-lg-4 text-center">
+                            <button @onclick="() => RemoveItem(cartObj.CartDetailsId)" class="btn btn-danger btn-md">
+                                <i class="bi bi-trash"></i>&nbsp;Remove
+                            </button>
+                        </div>
+                    </div>
+                }
+                <hr />
+                <div class="row">
+                    <div class="col-6">
+                        @if (string.IsNullOrEmpty(Cart.CartHeader.CouponCode))
+                        {
+                            <span>Coupon:</span>
+                            <input @bind="@Cart.CartHeader.CouponCode" />
+                            <button @onclick="ApplyCoupon" class="btn btn-sm btn-success">Apply</button>
+                        }
+                        else
+                        {
+                            <span>Coupon:</span>
+                            <input @bind="@Cart.CartHeader.CouponCode" disabled />
+                            <button @onclick="RemoveCoupon" class="btn btn-sm btn-success">Remove</button>
+                        }
+                    </div>
+                    <div class="col-6 text-end">
+                        <span class="text-danger" style="font-size:21px;">
+                            Order Total : @string.Format("{0:c}", Cart.CartHeader.CartTotal)<br />
+                        </span>
+                        @if (Cart.CartHeader.Discount > 0)
+                        {
+                            <span class="text-success">
+                                Order Discount : @string.Format("{0:c}", Cart.CartHeader.Discount)
+                            </span>
+                        }
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer row">
+                <div class="col-6 col-md-3">
+                    <button @onclick="EmailCart" class="btn btn-outline-danger form-control">Email Cart</button>
+                </div>
+                <div class="col-6 col-md-3 offset-md-6">
+                    <button @onclick="Checkout" class="btn btn-success form-control">Looks Good?</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    <div>
+        <p>Please add items to the cart.</p>
+    </div>
+}
+
+@code {
+    private CartDTO Cart { get; set; } = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadCart();
+    }
+
+    private async Task LoadCart()
+    {
+        var authState = await _authenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (!user.Identity.IsAuthenticated)
+        {
+            _navigationManager.NavigateTo("/login");
+            return;
+        }
+
+        var userId = user.Claims.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.Sub)?.Value;
+        var response = await _cartService.GetCartByUserIdAsync(userId);
+
+        if (response != null && response.IsSuccess)
+        {
+            Cart = JsonConvert.DeserializeObject<CartDTO>(Convert.ToString(response.Result));
+        }
+        else
+        {
+            Cart = new CartDTO();
+        }
+    }
+
+    private async Task RemoveItem(int cartDetailsId)
+    {
+        var response = await _cartService.RemoveFromCartAsync(cartDetailsId);
+        if (response != null && response.IsSuccess)
+        {
+            _toastService.ShowToast(ToastLevel.Success, "Cart updated successfully");
+            await LoadCart();
+        }
+        else
+        {
+            _toastService.ShowToast(ToastLevel.Error, "Failed to remove item from cart");
+        }
+    }
+
+    private async Task ApplyCoupon()
+    {
+        var response = await _cartService.ApplyCouponAsync(Cart);
+        if (response != null && response.IsSuccess)
+        {
+            _toastService.ShowToast(ToastLevel.Success, "Coupon applied successfully");
+            await LoadCart();
+        }
+        else
+        {
+            _toastService.ShowToast(ToastLevel.Error, "Failed to apply coupon");
+        }
+    }
+
+    private async Task RemoveCoupon()
+    {
+        Cart.CartHeader.CouponCode = "";
+        var response = await _cartService.ApplyCouponAsync(Cart);
+        if (response != null && response.IsSuccess)
+        {
+            _toastService.ShowToast(ToastLevel.Success, "Coupon removed successfully");
+            await LoadCart();
+        }
+        else
+        {
+            _toastService.ShowToast(ToastLevel.Error, "Failed to remove coupon");
+        }
+    }
+
+    private async Task EmailCart()
+    {
+        var authState = await _authenticationStateProvider.GetAuthenticationStateAsync();
+        var userEmail = authState.User.Claims.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.Email)?.Value;
+        Cart.CartHeader.Email = userEmail;
+
+        var response = await _cartService.EmailCart(Cart);
+        if (response != null && response.IsSuccess)
+        {
+            _toastService.ShowToast(ToastLevel.Success, "Email will be processed and sent shortly.");
+        }
+        else
+        {
+            _toastService.ShowToast(ToastLevel.Error, "Failed to email cart");
+        }
+    }
+
+    private void Checkout()
+    {
+        _navigationManager.NavigateTo("/cart/checkout");
+    }
+
+    private void ContinueShopping()
+    {
+        _navigationManager.NavigateTo("/");
+    }
+}

@@ -1,10 +1,18 @@
 ﻿@page "/ProductDetails/{ProductId:int}"
 @using Mango.Blazor.Models
+@using Mango.Blazor.Models.Enums
+@using Mango.Blazor.Service
+@using Mango.Blazor.Service.IService
 @using Newtonsoft.Json
+@using System.IdentityModel.Tokens.Jwt
+@using Microsoft.AspNetCore.Components.Authorization
+
+@inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NavigationManager _navigationManager
 @inject HttpClient _http
 @inject Mango.Blazor.Service.IService.IProductService _productService
 @inject Mango.Blazor.Service.IService.ICartService _cartService
+@inject IToastService ToastService
 
 <EditForm Model="@product" OnValidSubmit="HandleValidSubmit">
     <DataAnnotationsValidator />
@@ -68,32 +76,48 @@
 
     private async Task HandleValidSubmit()
     {
+        var userId = "";
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        if (user.Identity.IsAuthenticated)
+        {
+            userId = user.Claims.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.Sub)?.Value;
+        }
+        else
+        {
+            ToastService.ShowToast(ToastLevel.Warning, "Please login to add items to cart", "Authentication Required");
+            _navigationManager.NavigateTo("/login");
+            return;
+        }
+
         CartDTO cartDTO = new CartDTO()
         {
             CartHeader = new CartHeaderDTO
             {
-                UserId = "user-id-placeholder" // TODO Replace with actual user ID
+                UserId = userId
             }
         };
 
-        CartDetailsDTO cartDetailsDTO = new CartDetailsDTO()
+        CartDetailsDTO cartDetails = new CartDetailsDTO()
         {
             Count = product.Count,
-            ProductId = product.ProductId,
+            ProductId = product.ProductId
         };
 
-        cartDTO.CartDetails = new List<CartDetailsDTO> { cartDetailsDTO };
+        cartDTO.CartDetails = new List<CartDetailsDTO> { cartDetails };
 
         var response = await _cartService.UpsertCartAsync(cartDTO);
 
-        if (response.IsSuccess)
+        if (response != null && response.IsSuccess)
         {
-            // Handle success, e.g., show a success message or navigate to another page
-            _navigationManager.NavigateTo("/");
+            ToastService.ShowToast(ToastLevel.Success, "Item added to cart successfully", "Success");
+            _navigationManager.NavigateTo("/cart");
         }
         else
         {
-            // Handle error, e.g., show an error message
+            ToastService.ShowToast(ToastLevel.Error,
+            response?.Message ?? "Failed to add item to cart",
+            "Error");
         }
     }
 
