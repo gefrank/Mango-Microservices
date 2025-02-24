@@ -1,5 +1,200 @@
-﻿<h3>Checkout</h3>
+﻿@page "/cart/checkout"
+@using Mango.Blazor.Models
+@using Mango.Blazor.Models.Enums
+@using Mango.Blazor.Service.IService
+@using System.IdentityModel.Tokens.Jwt
+@using Newtonsoft.Json
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject ICartService _cartService
+@inject IOrderService _orderService
+@inject IToastService _toastService
+@inject NavigationManager NavigationManager
+@attribute [Authorize]
+
+<div class="border mt-2 p-4 rounded">
+    <div class="container row">
+        <div class="col-md-7 col-12">
+            <span style="font-size:25px;" class="text-warning mb-2">Order Summary</span>
+        </div>
+        <div class="col-md-5 col-12">
+            <button @onclick="NavigateToCart" class="btn btn-outline-warning form-control">Back to Cart</button>
+        </div>
+        <br /><br /><br />
+        <hr />
+        <div class="col-7">
+            <div class="row pt-2">
+                <div class="col-12 py-2">
+                    <input @bind="CartData.CartHeader.Name" placeholder="full name..." class="form-control" />
+                    @if (validationErrors.ContainsKey("Name"))
+                    {
+                        <span class="text-danger">@validationErrors["Name"]</span>
+                    }
+                </div>
+                <div class="col-12 py-2">
+                    <input placeholder="email..." @bind="CartData.CartHeader.Email" class="form-control" />
+                    @if (validationErrors.ContainsKey("Email"))
+                    {
+                        <span class="text-danger">@validationErrors["Email"]</span>
+                    }
+                </div>
+                <div class="col-12 py-2">
+                    <input class="form-control" @bind="CartData.CartHeader.Phone" placeholder="phone number..." />
+                    @if (validationErrors.ContainsKey("Phone"))
+                    {
+                        <span class="text-danger">@validationErrors["Phone"]</span>
+                    }
+                </div>
+                <div class="col-12 pt-2">
+                    <label class="col-form-label">Order will be ready in 30minutes after placing order. If you place order when restaurant is closed it will be ready next day.</label>
+                </div>
+            </div>
+        </div>
+        <div class="col-5">
+            <div class="card mt-2">
+                <div class="card-body">
+                    <div class=" d-none d-lg-block">
+                        <div class="row text-danger">
+                            <div class="col-6">Product Details</div>
+                            <div class="col-3">Price</div>
+                            <div class="col-3">Count</div>
+                        </div>
+                    </div>
+                    <hr />
+
+                    @if (CartData.CartDetails != null)
+                    {
+                        @foreach (var cartObj in CartData.CartDetails)
+                        {
+                            <div class="row h-100">
+                                <div class="col-6">
+                                    <span style="font-size:20px">@cartObj.Product.Name</span>
+                                </div>
+                                <div class="col-3" style="font-size:11px;">
+                                    <span style="font-size:17px;"> @cartObj.Product.Price.ToString("c")</span>
+                                </div>
+                                <div class="col-3" style="font-size:11px;">
+                                    <span style="font-size:17px;"> @cartObj.Count</span>
+                                </div>
+                            </div>
+                            <hr />
+                        }
+                    }
+
+                    <div class="row">
+                        <div class="col-12 text-center pr-4 text-danger">
+                            Order Total: @CartData.CartHeader.CartTotal.ToString("c") <br />
+                            @if (CartData.CartHeader.Discount > 0)
+                            {
+                                <span class="text-success">Order Discount: @CartData.CartHeader.Discount.ToString("c")</span>
+                            }
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <div class="row">
+                        <div class="col-12">
+                            <button @onclick="PlaceOrder" class="btn btn-success form-control">
+                                <span>Place Order</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
 @code {
+    private CartDTO CartData = new()
+    {
+        CartHeader = new CartHeaderDTO()
+    };
+    private Dictionary<string, string> validationErrors = new();
 
+    protected override async Task OnInitializedAsync()
+    {
+        CartData = await LoadCartDTOBasedOnLoggedInUser();
+    }
+
+    private async Task<CartDTO> LoadCartDTOBasedOnLoggedInUser()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        var userId = user.Claims.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.Sub)?.Value;
+
+        if (string.IsNullOrEmpty(userId))
+            return new CartDTO();
+
+        var response = await _cartService.GetCartByUserIdAsync(userId);
+        if (response != null && response.IsSuccess)
+        {
+            return JsonConvert.DeserializeObject<CartDTO>(Convert.ToString(response.Result)) ?? new CartDTO();
+        }
+        return new CartDTO();
+    }
+
+    private void NavigateToCart()
+    {
+        NavigationManager.NavigateTo("/cart");
+    }
+
+    private async Task PlaceOrder()
+    {
+        if (!ValidateForm())
+            return;
+
+        CartDTO cart = await LoadCartDTOBasedOnLoggedInUser();
+        cart.CartHeader.Phone = CartData.CartHeader.Phone;
+        cart.CartHeader.Email = CartData.CartHeader.Email;
+        cart.CartHeader.Name = CartData.CartHeader.Name;
+
+        var response = await _orderService.CreateOrder(cart);
+        if (response != null && response.IsSuccess)
+        {
+            OrderHeaderDTO orderHeaderDTO = JsonConvert.DeserializeObject<OrderHeaderDTO>(Convert.ToString(response.Result));
+
+            var domain = NavigationManager.BaseUri;
+            StripeRequestDTO stripeRequestDTO = new()
+            {
+                ApprovedUrl = domain + "cart/confirmation/" + orderHeaderDTO.OrderHeaderId,
+                CancelUrl = domain + "cart/checkout",
+                OrderHeader = orderHeaderDTO
+            };
+
+            var stripeResponse = await _orderService.CreateStripeSession(stripeRequestDTO);
+            StripeRequestDTO stripeResponseResult = JsonConvert.DeserializeObject<StripeRequestDTO>(Convert.ToString(stripeResponse.Result));
+            NavigationManager.NavigateTo(stripeResponseResult.StripeSessionUrl, true);
+        }
+        else
+        {
+            _toastService.ShowToast(ToastLevel.Error, "Failed to create order. Please try again.");
+        }
+    }
+
+    private bool ValidateForm()
+    {
+        validationErrors.Clear();
+        bool isValid = true;
+
+        if (string.IsNullOrWhiteSpace(CartData.CartHeader.Name))
+        {
+            validationErrors.Add("Name", "Name is required");
+            isValid = false;
+        }
+        if (string.IsNullOrWhiteSpace(CartData.CartHeader.Email))
+        {
+            validationErrors.Add("Email", "Email is required");
+            isValid = false;
+        }
+        if (string.IsNullOrWhiteSpace(CartData.CartHeader.Phone))
+        {
+            validationErrors.Add("Phone", "Phone is required");
+            isValid = false;
+        }
+
+        return isValid;
+    }
 }
