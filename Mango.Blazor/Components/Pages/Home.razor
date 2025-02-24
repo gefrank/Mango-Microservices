@@ -1,11 +1,17 @@
 ﻿@page "/"
+@using Newtonsoft.Json
+@using Mango.Blazor.Models
+@using Mango.Blazor.Models.Enums
+@using Mango.Blazor.Service.IService
+@using System.IdentityModel.Tokens.Jwt
+@using Microsoft.AspNetCore.Authorization
 
 @inject HttpClient _http
 @inject NavigationManager _navigationManager
 @inject IProductService _productService
-@using Newtonsoft.Json
-@using Mango.Blazor.Models
-@using Mango.Blazor.Service.IService
+@inject ICartService _cartService
+@inject IToastService _toastService
+@inject AuthenticationStateProvider _authenticationStateProvider
 
 <div class="container row">
     @if (products != null)
@@ -24,8 +30,17 @@
                             </div>
                             <p class="card-text">@((MarkupString)product.Description)</p>
                             <div class="row">
-                                <div class="col">
-                                    <button type="button" @onclick="@(() => _navigationManager.NavigateTo($"ProductDetails/{product.ProductId}"))" class="btn btn-success form-control">Details</button>
+                                <div class="col-6">
+                                    <button type="button" @onclick="@(() => _navigationManager.NavigateTo($"ProductDetails/{product.ProductId}"))"
+                                            class="btn btn-success form-control">
+                                        Details
+                                    </button>
+                                </div>
+                                <div class="col-6">
+                                    <button type="button" @onclick="@(() => AddToCart(product))"
+                                            class="btn btn-primary form-control">
+                                        <i class="bi bi-cart-plus"></i> Add to Cart
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -36,7 +51,6 @@
     }
 </div>
 
-
 @code {
     private IEnumerable<ProductDTO> products;
 
@@ -45,11 +59,47 @@
         var response = await _productService.GetAllProductsAsync();
         if (response != null && response.IsSuccess)
         {
-            // products = response.Result as IEnumerable<ProductDTO>;
-            products = JsonConvert.DeserializeObject<List<ProductDTO>>(Convert.ToString(response.Result)!);
-
-            StateHasChanged(); // Notify the framework to re-render the component
+            products = JsonConvert.DeserializeObject<List<ProductDTO>>(Convert.ToString(response.Result)!)!;
+            StateHasChanged();
         }
     }
 
+    private async Task AddToCart(ProductDTO product)
+    {
+        var authState = await _authenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (!user.Identity.IsAuthenticated)
+        {
+            _navigationManager.NavigateTo("/login");
+            return;
+        }
+
+        CartDTO cartDTO = new()
+        {
+            CartHeader = new CartHeaderDTO
+            {
+                UserId = user.Claims.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.Sub)?.Value
+            }
+        };
+
+        CartDetailsDTO cartDetails = new()
+        {
+            Count = 1,
+            ProductId = product.ProductId,
+        };
+
+        cartDTO.CartDetails = new List<CartDetailsDTO> { cartDetails };
+
+        var response = await _cartService.UpsertCartAsync(cartDTO);
+
+        if (response != null && response.IsSuccess)
+        {
+            _toastService.ShowToast(ToastLevel.Success, "Item has been added to the Shopping Cart");
+        }
+        else
+        {
+            _toastService.ShowToast(ToastLevel.Error, response?.Message ?? "Error adding to cart");
+        }
+    }
 }
