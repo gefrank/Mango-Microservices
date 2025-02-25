@@ -1,0 +1,149 @@
+﻿@page "/order"
+@page "/Order/OrderIndex"
+@using Mango.Blazor.Models
+@using Mango.Blazor.Models.Enums
+@using Mango.Blazor.Service.IService
+@using Mango.Blazor.Utility
+@using System.IdentityModel.Tokens.Jwt
+@using Newtonsoft.Json
+
+@inject IOrderService _orderService
+@inject IToastService _toastService
+@inject AuthenticationStateProvider _authenticationStateProvider
+@inject NavigationManager _navigationManager
+
+
+<div class="card shadow border-0 mt-4">
+    <div class="card-header bg-secondary bg-gradient ml-0 py-3 d-flex justify-content-between">
+        <div class="row">
+            <h1 class="text-white">Order List</h1>
+        </div>
+        <ul class="list-group list-group-horizontal-sm pt-2">
+            <li class="list-group-item @(SelectedStatus == "approved" ? "active text-white bg-secondary" : "")"
+                @onclick="@(() => FilterOrders("approved"))">Approved</li>
+            <li class="list-group-item @(SelectedStatus == "readyforpickup" ? "active text-white bg-secondary" : "")"
+                @onclick="@(() => FilterOrders("readyforpickup"))">Ready for Pickup</li>
+            <li class="list-group-item @(SelectedStatus == "cancelled" ? "active text-white bg-secondary" : "")"
+                @onclick="@(() => FilterOrders("cancelled"))">Cancelled</li>
+            <li class="list-group-item @(SelectedStatus == "all" ? "active text-white bg-secondary" : "")"
+                @onclick="@(() => FilterOrders("all"))">All</li>
+        </ul>
+    </div>
+    <div class="card-body p-4">
+        @if (OrderList == null)
+        {
+            <div class="text-center">
+                <img src="/images/loading.gif" alt="Loading..." />
+            </div>
+        }
+        else
+        {
+            <table class="table table-bordered table-striped pt-3" style="width:100%">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Email</th>
+                        <th>Name</th>
+                        <th>Phone</th>
+                        <th>Status</th>
+                        <th>Total</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var order in FilteredOrders)
+                    {
+                        <tr>
+                            <td>@order.OrderHeaderId</td>
+                            <td>@order.Email</td>
+                            <td>@order.Name</td>
+                            <td>@order.Phone</td>
+                            <td>@order.Status</td>
+                            <td>@order.OrderTotal.ToString("c")</td>
+                            <td>
+                                <NavLink href="@($"order/details/{order.OrderHeaderId}")" class="btn btn-primary">
+                                    Details
+                                </NavLink>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    </div>
+</div>
+
+@code {
+    private List<OrderHeaderDTO> OrderList;
+    private List<OrderHeaderDTO> FilteredOrders => FilterOrdersByStatus();
+    private string SelectedStatus = "all";
+    private string UserId;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await _authenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (!user.Identity.IsAuthenticated)
+        {
+            _navigationManager.NavigateTo("/login");
+            return;
+        }
+
+        UserId = user.Claims.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.Sub)?.Value;
+
+        if (!user.IsInRole(SD.RoleAdmin))
+        {
+            // For regular users, only show their orders
+            await LoadOrders(UserId);
+        }
+        else
+        {
+            // For admin, show all orders
+            await LoadOrders(null);
+        }
+    }
+
+    private async Task LoadOrders(string userId)
+    {
+        var response = await _orderService.GetAllOrder(userId);
+        if (response != null && response.IsSuccess)
+        {
+            OrderList = JsonConvert.DeserializeObject<List<OrderHeaderDTO>>(Convert.ToString(response.Result));
+            _toastService.ShowToast(ToastLevel.Success, "Orders loaded successfully");
+        }
+        else
+        {
+            OrderList = new List<OrderHeaderDTO>();
+            _toastService.ShowToast(ToastLevel.Error, "Failed to load orders");
+        }
+    }
+
+    private void FilterOrders(string status)
+    {
+        SelectedStatus = status;
+        StateHasChanged();
+    }
+
+    private List<OrderHeaderDTO> FilterOrdersByStatus()
+    {
+        if (OrderList == null) return new List<OrderHeaderDTO>();
+
+        var filteredList = OrderList;
+        switch (SelectedStatus.ToLower())
+        {
+            case "approved":
+                filteredList = OrderList.Where(u => u.Status == SD.Status_Approved).ToList();
+                break;
+            case "readyforpickup":
+                filteredList = OrderList.Where(u => u.Status == SD.Status_ReadyForPickup).ToList();
+                break;
+            case "cancelled":
+                filteredList = OrderList.Where(u => u.Status == SD.Status_Cancelled ||
+                                                  u.Status == SD.Status_Refunded).ToList();
+                break;
+        }
+
+        return filteredList.OrderByDescending(u => u.OrderHeaderId).ToList();
+    }
+}
