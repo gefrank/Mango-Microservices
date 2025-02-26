@@ -1,15 +1,20 @@
 ﻿using Mango.Blazor.Models;
+using Mango.Blazor.Providers;
 using Mango.Blazor.Service.IService;
 using Mango.Blazor.Utility;
+using Microsoft.AspNetCore.Components.Authorization;
 
 namespace Mango.Blazor.Service
 {
     public class AuthService : IAuthService
     {
         private readonly IBaseService _baseService;
-        public AuthService(IBaseService baseService)
+        private readonly CustomAuthenticationStateProvider _authenticationStateProvider;
+
+        public AuthService(IBaseService baseService, AuthenticationStateProvider authenticationStateProvider)
         {
             _baseService = baseService;
+            _authenticationStateProvider = (CustomAuthenticationStateProvider)authenticationStateProvider; 
         }
 
         public async Task<ResponseDTO?> AssignRoleAsync(RegistrationRequestDTO registrationRequestDTO)
@@ -30,6 +35,11 @@ namespace Mango.Blazor.Service
                 Data = loginRequestDTO,
                 Url = SD.AuthAPIBase + "/api/auth/login"
             }, withBearer: false);
+        }
+
+        public async Task Logout()
+        {
+            _authenticationStateProvider.NotifyUserLogout();
         }
 
         public async Task<ResponseDTO?> RegisterAsync(RegistrationRequestDTO registrationRequestDTO)

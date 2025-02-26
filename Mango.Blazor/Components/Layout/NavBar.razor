@@ -1,7 +1,12 @@
 ﻿@using Mango.Blazor.Utility
+@using Mango.Blazor.Service.IService
+
 @using Microsoft.AspNetCore.Components.Authorization
 @using System.Security.Claims
+
 @inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IAuthService AuthService
+@inject NavigationManager _navigationManager
 
 <nav class="navbar navbar-expand-md navbar-dark bg-dark pb-4 pt-4">
     <div class="container-fluid">
@@ -64,7 +69,7 @@
                         </NavLink>
                     </li>
                     <li class="nav-item">
-                        <NavLink class="nav-link" href="/auth/Logout">
+                        <NavLink class="nav-link" href="#" @onclick="Logout">
                             Logout
                         </NavLink>
                     </li>
@@ -99,6 +104,12 @@
         isAuth = user.Identity?.IsAuthenticated ?? false;
         userName = user.Identity?.Name;
         isAdmin = user.IsInRole(SD.RoleAdmin);
+    }
+
+    private async Task Logout()
+    {
+        await AuthService.Logout();
+        _navigationManager.NavigateTo("/");
     }
 
     public void Dispose()
