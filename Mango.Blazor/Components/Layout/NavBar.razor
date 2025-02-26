@@ -108,8 +108,17 @@
 
     private async Task Logout()
     {
-        await AuthService.Logout();
-        _navigationManager.NavigateTo("/");
+        try
+        {
+            await AuthService.Logout();
+            // Force a navigation to root after logout
+            _navigationManager.NavigateTo("/", true);
+        }
+        catch
+        {
+            // Ensure navigation happens even if there's an error
+            _navigationManager.NavigateTo("/", true);
+        }
     }
 
     public void Dispose()

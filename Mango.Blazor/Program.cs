@@ -29,7 +29,35 @@ builder.Services.AddAuthentication(options =>
         options.DefaultScheme = IdentityConstants.ApplicationScheme;
         options.DefaultSignInScheme = IdentityConstants.ExternalScheme;
     })
-    .AddIdentityCookies();
+    .AddIdentityCookies(options =>
+    {
+        options.ApplicationCookie.Configure(cookieOptions =>
+        {
+            cookieOptions.LoginPath = "/Login";
+            cookieOptions.LogoutPath = "/";
+            cookieOptions.AccessDeniedPath = "/";
+            cookieOptions.ReturnUrlParameter = string.Empty; // Prevent return URL from being added
+            cookieOptions.Events = new CookieAuthenticationEvents
+            {
+                OnRedirectToLogin = context =>
+                {
+                    // For API requests, don't redirect
+                    if (context.Request.Path.StartsWithSegments("/api"))
+                    {
+                        context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                        return Task.CompletedTask;
+                    }
+                    context.Response.Redirect(context.RedirectUri);
+                    return Task.CompletedTask;
+                },
+                OnRedirectToAccessDenied = context =>
+                {
+                    context.Response.Redirect("/");
+                    return Task.CompletedTask;
+                }
+            };
+        });
+    });
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 builder.Services.AddDbContext<ApplicationDbContext>(options =>

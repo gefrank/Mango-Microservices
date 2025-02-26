@@ -1,0 +1,107 @@
+﻿@page "/coupon/create"
+
+@using Mango.Blazor.Models
+@using Mango.Blazor.Service.IService
+@using Mango.Blazor.Models.Enums
+@using Newtonsoft.Json
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize(Roles = "ADMIN")]
+
+@inject ICouponService CouponService
+@inject NavigationManager NavigationManager
+@inject IToastService ToastService
+
+<div class="container border p-3">
+    <h1 class="text-white text-center">Create Coupon</h1>
+    <hr />
+    <div class="row">
+        <div class="col-2">
+            <label class="control-label pt-2" style="font-size:20px;">Coupon Code</label>
+        </div>
+        <div class="col-10 pb-3">
+            <input @bind="Coupon.CouponCode" class="form-control" />
+            @if (validationErrors.ContainsKey(nameof(Coupon.CouponCode)))
+            {
+                <span class="text-danger">@validationErrors[nameof(Coupon.CouponCode)]</span>
+            }
+        </div>
+        <div class="col-2">
+            <label class="control-label pt-2" style="font-size:20px;">Discount Amount</label>
+        </div>
+        <div class="col-10 pb-3">
+            <input @bind="Coupon.DiscountAmount" class="form-control" type="number" step="0.01" />
+            @if (validationErrors.ContainsKey(nameof(Coupon.DiscountAmount)))
+            {
+                <span class="text-danger">@validationErrors[nameof(Coupon.DiscountAmount)]</span>
+            }
+        </div>
+        <div class="col-2">
+            <label class="control-label pt-2" style="font-size:20px;">Minimum Amount</label>
+        </div>
+        <div class="col-10 pb-3">
+            <input @bind="Coupon.MinAmount" class="form-control" type="number" step="0.01" />
+            @if (validationErrors.ContainsKey(nameof(Coupon.MinAmount)))
+            {
+                <span class="text-danger">@validationErrors[nameof(Coupon.MinAmount)]</span>
+            }
+        </div>
+
+        <div class="col-5 offset-2">
+            <a href="/coupon" class="btn-primary btn form-control">Back to List</a>
+        </div>
+        <div class="col-5">
+            <button type="button" class="btn btn-success form-control" @onclick="HandleCreate">Create</button>
+        </div>
+    </div>
+</div>
+
+@code {
+    private CouponDTO Coupon = new();
+    private Dictionary<string, string> validationErrors = new();
+
+    private bool ValidateModel()
+    {
+        validationErrors.Clear();
+        bool isValid = true;
+
+        if (string.IsNullOrEmpty(Coupon.CouponCode))
+        {
+            validationErrors.Add(nameof(Coupon.CouponCode), "Coupon Code is required");
+            isValid = false;
+        }
+
+        if (Coupon.DiscountAmount <= 0)
+        {
+            validationErrors.Add(nameof(Coupon.DiscountAmount), "Discount Amount must be greater than 0");
+            isValid = false;
+        }
+
+        if (Coupon.MinAmount <= 0)
+        {
+            validationErrors.Add(nameof(Coupon.MinAmount), "Minimum Amount must be greater than 0");
+            isValid = false;
+        }
+
+        return isValid;
+    }
+
+    private async Task HandleCreate()
+    {
+        if (!ValidateModel())
+        {
+            return;
+        }
+
+        var response = await CouponService.CreateCouponAsync(Coupon);
+
+        if (response != null && response.IsSuccess)
+        {
+            ToastService.ShowToast(ToastLevel.Success, "Coupon created successfully");
+            NavigationManager.NavigateTo("/coupon");
+        }
+        else
+        {
+            ToastService.ShowToast(ToastLevel.Error, response?.Message ?? "Error creating coupon");
+        }
+    }
+}

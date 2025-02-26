@@ -2,39 +2,50 @@
     position: relative;
     display: flex;
     flex-direction: column;
+    min-height: 100vh;
+    background-color: #212529;
+    color: #fff;
 }
 
 main {
     flex: 1;
+    background-color: #212529;
 }
 
+/* Dark theme overrides */
+::deep .card {
+    background-color: #2d3238;
+    border-color: #373b3e;
+}
+
+::deep .card-body {
+    background-color: #2d3238;
+    color: #fff;
+}
+
+::deep .table {
+    color: #fff;
+}
+
+    ::deep .table > :not(caption) > * > * {
+        background-color: #2d3238;
+        color: #fff;
+        border-bottom-color: #373b3e;
+    }
+
+/* Keep existing styles but update colors */
 .sidebar {
     background-image: linear-gradient(180deg, rgb(5, 39, 103) 0%, #3a0647 70%);
 }
 
 .top-row {
-    background-color: #f7f7f7;
-    border-bottom: 1px solid #d6d5d5;
+    background-color: #2d3238;
+    border-bottom: 1px solid #373b3e;
     justify-content: flex-end;
     height: 3.5rem;
     display: flex;
     align-items: center;
 }
-
-    .top-row ::deep a, .top-row ::deep .btn-link {
-        white-space: nowrap;
-        margin-left: 1.5rem;
-        text-decoration: none;
-    }
-
-    .top-row ::deep a:hover, .top-row ::deep .btn-link:hover {
-        text-decoration: underline;
-    }
-
-    .top-row ::deep a:first-child {
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
 
 @media (max-width: 640.98px) {
     .top-row {
