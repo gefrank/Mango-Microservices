@@ -6,13 +6,14 @@ using Mango.Services.AuthAPI.Service.IService;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Moq;
-using Xunit;
-using System.Linq;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace Mango.Services.AuthAPI.Tests
 {
+    /// <summary>
+    /// A test service utilizing xUnit and Moq
+    /// </summary>
     public class AuthServiceTests
     {
         private readonly AppDbContext _dbContext;
