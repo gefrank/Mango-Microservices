@@ -5,9 +5,6 @@ using Mango.Services.ProductAPI.Models;
 using Mango.Services.ProductAPI.Models.DTO;
 using Microsoft.EntityFrameworkCore;
 using Moq;
-using System.Collections.Generic;
-using System.Linq;
-using Xunit;
 
 namespace Mango.Services.ProductAPI.Tests
 {
