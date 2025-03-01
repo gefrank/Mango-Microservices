@@ -1,0 +1,51 @@
+﻿name: Push Test
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up .NET
+      uses: actions/setup-dotnet@v2
+      with:
+        dotnet-version: '9.0.x'
+
+    - name: Restore dependencies
+      run: dotnet restore
+
+    - name: Build
+      run: dotnet build --no-restore
+
+    - name: Run tests
+      id: test
+      run: dotnet test --no-build --verbosity normal
+
+    - name: Commit changes
+      if: success()
+      run: |
+        git config --global user.name 'github-actions[bot]'
+        git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+        git add .
+        git commit -m "Automated commit after successful tests"
+        git push origin master
+
+    - name: Send email on failure
+      if: failure()
+      uses: dawidd6/action-send-mail@v3
+      with:
+        server_address: smtp.example.com
+        server_port: 587
+        username: ${{ secrets.SMTP_USERNAME }}
+        password: ${{ secrets.SMTP_PASSWORD }}
+        subject: 'Test Failure Notification'
+        body: 'The tests have failed. Please check the workflow logs for details.'
+        to: 'gefrank@gmail.com'
+        from: 'gefrank@gmail.com'
