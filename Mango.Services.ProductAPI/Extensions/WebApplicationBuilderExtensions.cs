@@ -8,12 +8,16 @@ namespace Mango.Services.ProductAPI.Extensions
     {
         public static WebApplicationBuilder AddAppAuthentication(this WebApplicationBuilder builder)
         {
-
             var settingsSection = builder.Configuration.GetSection("ApiSettings");
 
             var secret = settingsSection.GetValue<string>("Secret");
             var issuer = settingsSection.GetValue<string>("Issuer");
             var audience = settingsSection.GetValue<string>("Audience");
+
+            if (string.IsNullOrEmpty(secret))
+            {
+                throw new ArgumentNullException(nameof(secret), "Secret cannot be null or empty.");
+            }
 
             var key = Encoding.ASCII.GetBytes(secret);
 

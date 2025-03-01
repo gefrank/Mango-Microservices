@@ -7,6 +7,6 @@ namespace Mango.Services.AuthAPI.Models
     /// </summary>
     public class ApplicationUser : IdentityUser
     {
-        public string Name { get; set; }
+        public string? Name { get; set; }
     }
 }
