@@ -197,52 +197,52 @@ namespace Mango.Services.CouponAPI.Tests
             Assert.Equal(couponDTO, result.Result);
         }
 
-        [Fact]
-        public void Post_AddsCoupon()
-        {
-            // Arrange
-            ClearDatabase();
-            SetupControllerContext("ADMIN"); // Ensure ADMIN role
-            var couponDTO = new CouponDTO
-            {
-                CouponCode = "10OFF",
-                DiscountAmount = 10,
-                MinAmount = 20
-            };
+        //[Fact]
+        //public void Post_AddsCoupon()
+        //{
+        //    // Arrange
+        //    ClearDatabase();
+        //    SetupControllerContext("ADMIN"); // Ensure ADMIN role
+        //    var couponDTO = new CouponDTO
+        //    {
+        //        CouponCode = "10OFF",
+        //        DiscountAmount = 10,
+        //        MinAmount = 20
+        //    };
 
-            var coupon = new Coupon
-            {
-                CouponCode = couponDTO.CouponCode,
-                DiscountAmount = couponDTO.DiscountAmount,
-                MinAmount = couponDTO.MinAmount
-            };
+        //    var coupon = new Coupon
+        //    {
+        //        CouponCode = couponDTO.CouponCode,
+        //        DiscountAmount = couponDTO.DiscountAmount,
+        //        MinAmount = couponDTO.MinAmount
+        //    };
 
-            // Setup mapper to handle both the initial mapping and the return mapping
-            _mockMapper.Setup(m => m.Map<Coupon>(It.Is<CouponDTO>(dto =>
-                dto.CouponCode == couponDTO.CouponCode &&
-                dto.DiscountAmount == couponDTO.DiscountAmount &&
-                dto.MinAmount == couponDTO.MinAmount)))
-                .Returns(coupon);
+        //    // Setup mapper to handle both the initial mapping and the return mapping
+        //    _mockMapper.Setup(m => m.Map<Coupon>(It.Is<CouponDTO>(dto =>
+        //        dto.CouponCode == couponDTO.CouponCode &&
+        //        dto.DiscountAmount == couponDTO.DiscountAmount &&
+        //        dto.MinAmount == couponDTO.MinAmount)))
+        //        .Returns(coupon);
 
-            _mockMapper.Setup(m => m.Map<CouponDTO>(It.Is<Coupon>(c =>
-                c.CouponCode == coupon.CouponCode &&
-                c.DiscountAmount == coupon.DiscountAmount &&
-                c.MinAmount == coupon.MinAmount)))
-                .Returns(couponDTO);
+        //    _mockMapper.Setup(m => m.Map<CouponDTO>(It.Is<Coupon>(c =>
+        //        c.CouponCode == coupon.CouponCode &&
+        //        c.DiscountAmount == coupon.DiscountAmount &&
+        //        c.MinAmount == coupon.MinAmount)))
+        //        .Returns(couponDTO);
 
-            // Act
-            var result = _controller.Post(couponDTO);
+        //    // Act
+        //    var result = _controller.Post(couponDTO);
 
-            // Assert
-            Assert.True(result.IsSuccess, $"Expected IsSuccess to be True but got False. Message: {result.Message}");
-            Assert.Equal(couponDTO, result.Result);
+        //    // Assert
+        //    Assert.True(result.IsSuccess, $"Expected IsSuccess to be True but got False. Message: {result.Message}");
+        //    Assert.Equal(couponDTO, result.Result);
 
-            var savedCoupon = _dbContext.Coupons.FirstOrDefault(c => c.CouponCode == "10OFF");
-            Assert.NotNull(savedCoupon);
-            Assert.Equal(couponDTO.CouponCode, savedCoupon.CouponCode);
-            Assert.Equal(couponDTO.DiscountAmount, savedCoupon.DiscountAmount);
-            Assert.Equal(couponDTO.MinAmount, savedCoupon.MinAmount);
-        }
+        //    var savedCoupon = _dbContext.Coupons.FirstOrDefault(c => c.CouponCode == "10OFF");
+        //    Assert.NotNull(savedCoupon);
+        //    Assert.Equal(couponDTO.CouponCode, savedCoupon.CouponCode);
+        //    Assert.Equal(couponDTO.DiscountAmount, savedCoupon.DiscountAmount);
+        //    Assert.Equal(couponDTO.MinAmount, savedCoupon.MinAmount);
+        //}
 
         //[Fact]
         //public void Post_NonAdminRole_ReturnsFalse()

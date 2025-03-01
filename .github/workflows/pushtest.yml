@@ -27,7 +27,7 @@ jobs:
     - name: Run tests
       id: test
       run: |
-        dotnet test **/*API.Tests.csproj --no-build --verbosity normal --logger "console;verbosity=detailed"
+        dotnet test Mango.sln --no-build --verbosity normal --logger "console;verbosity=detailed"
 
     - name: Check for changes
       id: changes
