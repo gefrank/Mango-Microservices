@@ -1,4 +1,4 @@
-﻿name: Push Test
+name: Push Test
 
 on:
   push:
@@ -36,16 +36,3 @@ jobs:
         git add .
         git commit -m "Automated commit after successful tests"
         git push origin master
-
-    - name: Send email on failure
-      if: failure()
-      uses: dawidd6/action-send-mail@v3
-      with:
-        server_address: smtp.example.com
-        server_port: 587
-        username: ${{ secrets.SMTP_USERNAME }}
-        password: ${{ secrets.SMTP_PASSWORD }}
-        subject: 'Test Failure Notification'
-        body: 'The tests have failed. Please check the workflow logs for details.'
-        to: 'gefrank@gmail.com'
-        from: 'gefrank@gmail.com'

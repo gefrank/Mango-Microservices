@@ -49,6 +49,13 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mango.Services.RewardAPI.Te
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mango.Services.CouponAPI.Tests", "Mango.Services.CouponAPI.Tests\Mango.Services.CouponAPI.Tests.csproj", "{049473E5-AF86-47F8-B30E-AD99CE3F05F2}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".github", ".github", "{F4F8ADFF-5415-48A9-ABA2-3D929AE130A5}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{7B5EAB13-C54B-4139-ABB8-5EA16AE09447}"
+	ProjectSection(SolutionItems) = preProject
+		pushtest.yml = pushtest.yml
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -145,6 +152,7 @@ Global
 		{CD57717F-4B76-49B2-BF2D-681799703015} = {850F42BC-A2A2-4102-985C-337BB1DEC945}
 		{745FCA5B-041C-4E60-8C3C-1C8A4FB1221E} = {850F42BC-A2A2-4102-985C-337BB1DEC945}
 		{049473E5-AF86-47F8-B30E-AD99CE3F05F2} = {850F42BC-A2A2-4102-985C-337BB1DEC945}
+		{7B5EAB13-C54B-4139-ABB8-5EA16AE09447} = {F4F8ADFF-5415-48A9-ABA2-3D929AE130A5}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {7E931EE2-D0CE-4125-B677-B9D6E50A470F}
