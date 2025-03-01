@@ -197,291 +197,291 @@ namespace Mango.Services.CouponAPI.Tests
             Assert.Equal(couponDTO, result.Result);
         }
 
-        //[Fact]
-        //public void Post_AddsCoupon()
-        //{
-        //    // Arrange
-        //    ClearDatabase();
-        //    SetupControllerContext("ADMIN"); // Ensure ADMIN role
-        //    var couponDTO = new CouponDTO
-        //    {
-        //        CouponCode = "10OFF",
-        //        DiscountAmount = 10,
-        //        MinAmount = 20
-        //    };
-
-        //    var coupon = new Coupon
-        //    {
-        //        CouponCode = couponDTO.CouponCode,
-        //        DiscountAmount = couponDTO.DiscountAmount,
-        //        MinAmount = couponDTO.MinAmount
-        //    };
-
-        //    // Setup mapper to handle both the initial mapping and the return mapping
-        //    _mockMapper.Setup(m => m.Map<Coupon>(It.Is<CouponDTO>(dto =>
-        //        dto.CouponCode == couponDTO.CouponCode &&
-        //        dto.DiscountAmount == couponDTO.DiscountAmount &&
-        //        dto.MinAmount == couponDTO.MinAmount)))
-        //        .Returns(coupon);
-
-        //    _mockMapper.Setup(m => m.Map<CouponDTO>(It.Is<Coupon>(c =>
-        //        c.CouponCode == coupon.CouponCode &&
-        //        c.DiscountAmount == coupon.DiscountAmount &&
-        //        c.MinAmount == coupon.MinAmount)))
-        //        .Returns(couponDTO);
-
-        //    // Act
-        //    var result = _controller.Post(couponDTO);
-
-        //    // Assert
-        //    Assert.True(result.IsSuccess, $"Expected IsSuccess to be True but got False. Message: {result.Message}");
-        //    Assert.Equal(couponDTO, result.Result);
-
-        //    var savedCoupon = _dbContext.Coupons.FirstOrDefault(c => c.CouponCode == "10OFF");
-        //    Assert.NotNull(savedCoupon);
-        //    Assert.Equal(couponDTO.CouponCode, savedCoupon.CouponCode);
-        //    Assert.Equal(couponDTO.DiscountAmount, savedCoupon.DiscountAmount);
-        //    Assert.Equal(couponDTO.MinAmount, savedCoupon.MinAmount);
-        //}
-
-        //[Fact]
-        //public void Post_NonAdminRole_ReturnsFalse()
-        //{
-        //    // Arrange
-        //    ClearDatabase();
-        //    SetupControllerContext("USER"); // Non-admin role
-        //    var couponDTO = new CouponDTO
-        //    {
-        //        CouponCode = "10OFF",
-        //        DiscountAmount = 10,
-        //        MinAmount = 20
-        //    };
-
-        //    try
-        //    {
-        //        // Act
-        //        var result = _controller.Post(couponDTO);
-
-        //        // Assert
-        //        Assert.False(result.IsSuccess);
-        //        Assert.Contains("Unauthorized", result.Message);
-        //    }
-        //    catch (Exception ex) when (ex is UnauthorizedAccessException)
-        //    {
-        //        // If authorization throws an exception, that's also a valid test case
-        //        Assert.True(true);
-        //    }
-        //    finally
-        //    {
-        //        // Verify no coupon was added
-        //        var savedCoupon = _dbContext.Coupons.FirstOrDefault(c => c.CouponCode == "10OFF");
-        //        Assert.Null(savedCoupon);
-        //    }
-        //}
-
-        //[Fact]
-        //public void Put_UpdatesCoupon()
-        //{
-        //    // Arrange
-        //    ClearDatabase();
-        //    SetupControllerContext("ADMIN"); // Ensure ADMIN role
-        //    var coupon = new Coupon
-        //    {
-        //        CouponId = 1,
-        //        CouponCode = "10OFF",
-        //        DiscountAmount = 10,
-        //        MinAmount = 20
-        //    };
-        //    _dbContext.Coupons.Add(coupon);
-        //    _dbContext.SaveChanges();
-
-        //    var couponDTO = new CouponDTO
-        //    {
-        //        CouponId = coupon.CouponId,
-        //        CouponCode = "20OFF",
-        //        DiscountAmount = 20,
-        //        MinAmount = 40
-        //    };
-
-        //    _mockMapper.Setup(m => m.Map<Coupon>(It.IsAny<CouponDTO>()))
-        //        .Returns(coupon);
-        //    _mockMapper.Setup(m => m.Map<CouponDTO>(It.IsAny<Coupon>()))
-        //        .Returns(couponDTO);
-
-        //    // Act
-        //    var result = _controller.Put(couponDTO);
-
-        //    // Assert
-        //    Assert.True(result.IsSuccess);
-        //    Assert.Equal(couponDTO, result.Result);
-        //    var updatedCoupon = _dbContext.Coupons.Find(1);
-        //    Assert.Equal("20OFF", updatedCoupon.CouponCode);
-        //}
-
-        //[Fact]
-        //public void Put_NonAdminRole_ReturnsFalse()
-        //{
-        //    // Arrange
-        //    ClearDatabase();
-        //    var originalCoupon = new Coupon
-        //    {
-        //        CouponId = 1,
-        //        CouponCode = "10OFF",
-        //        DiscountAmount = 10,
-        //        MinAmount = 20
-        //    };
-        //    _dbContext.Coupons.Add(originalCoupon);
-        //    _dbContext.SaveChanges();
-
-        //    SetupControllerContext("USER"); // Non-admin role
-
-        //    var couponDTO = new CouponDTO
-        //    {
-        //        CouponId = originalCoupon.CouponId,
-        //        CouponCode = "20OFF",
-        //        DiscountAmount = 20,
-        //        MinAmount = 40
-        //    };
-
-        //    try
-        //    {
-        //        // Act
-        //        var result = _controller.Put(couponDTO);
-
-        //        // Assert
-        //        Assert.False(result.IsSuccess);
-        //        Assert.Contains("Unauthorized", result.Message);
-        //    }
-        //    catch (Exception ex) when (ex is UnauthorizedAccessException)
-        //    {
-        //        // If authorization throws an exception, that's also a valid test case
-        //        Assert.True(true);
-        //    }
-        //    finally
-        //    {
-        //        // Verify coupon wasn't modified
-        //        var existingCoupon = _dbContext.Coupons.Find(originalCoupon.CouponId);
-        //        Assert.NotNull(existingCoupon);
-        //        Assert.Equal("10OFF", existingCoupon.CouponCode);
-        //        Assert.Equal(10, existingCoupon.DiscountAmount);
-        //        Assert.Equal(20, existingCoupon.MinAmount);
-        //    }
-        //}
-
-        //[Fact]
-        //public void Delete_RemovesCoupon()
-        //{
-        //    // Arrange
-        //    ClearDatabase();
-        //    var coupon = new Coupon
-        //    {
-        //        CouponId = 1,
-        //        CouponCode = "10OFF",
-        //        DiscountAmount = 10,
-        //        MinAmount = 20
-        //    };
-        //    _dbContext.Coupons.Add(coupon);
-        //    _dbContext.SaveChanges();
-
-        //    // Ensure ADMIN role is set
-        //    SetupControllerContext("ADMIN");
-
-        //    // Act
-        //    var result = _controller.Delete(coupon.CouponId);
-
-        //    // Assert
-        //    Assert.True(result.IsSuccess);
-        //    Assert.Null(_dbContext.Coupons.Find(coupon.CouponId));
-        //}
-
-        //[Fact]
-        //public async Task Delete_NonAdminRole_ReturnsFalse()
-        //{
-        //    // Arrange
-        //    ClearDatabase();
-        //    var coupon = new Coupon
-        //    {
-        //        CouponId = 1,
-        //        CouponCode = "10OFF",
-        //        DiscountAmount = 10,
-        //        MinAmount = 20
-        //    };
-        //    await _dbContext.Coupons.AddAsync(coupon);
-        //    await _dbContext.SaveChangesAsync();
-
-        //    // Set non-admin role
-        //    SetupControllerContext("USER");
-
-        //    try
-        //    {
-        //        // Act
-        //        var result = _controller.Delete(coupon.CouponId);
-
-        //        // Assert
-        //        Assert.False(result.IsSuccess);
-        //        Assert.Contains("Unauthorized", result.Message);
-        //    }
-        //    catch (Exception ex) when (ex is UnauthorizedAccessException)
-        //    {
-        //        // If authorization throws an exception, that's also a valid test case
-        //        Assert.True(true);
-        //    }
-        //    finally
-        //    {
-        //        // Verify coupon wasn't deleted
-        //        var existingCoupon = await _dbContext.Coupons.FindAsync(coupon.CouponId);
-        //        Assert.NotNull(existingCoupon);
-        //        Assert.Equal("10OFF", existingCoupon.CouponCode);
-        //        Assert.Equal(10, existingCoupon.DiscountAmount);
-        //    }
-        //}
-
-        //[Fact]
-        //public void GetByCode_InvalidCode_ReturnsNull()
-        //{
-        //    // Arrange
-        //    ClearDatabase();
-
-        //    // Act
-        //    var result = _controller.GetByCode("INVALID");
-
-        //    // Assert
-        //    Assert.True(result.IsSuccess);
-        //    Assert.Null(result.Result);
-        //}
-
-        //[Fact]
-        //public void Post_DuplicateCouponCode_ReturnsFalse()
-        //{
-        //    // Arrange
-        //    ClearDatabase();
-        //    var existingCoupon = new Coupon
-        //    {
-        //        CouponId = 1,
-        //        CouponCode = "10OFF",
-        //        DiscountAmount = 10,
-        //        MinAmount = 20
-        //    };
-        //    _dbContext.Coupons.Add(existingCoupon);
-        //    _dbContext.SaveChanges();
-
-        //    var couponDTO = new CouponDTO
-        //    {
-        //        CouponCode = "10OFF",
-        //        DiscountAmount = 15,
-        //        MinAmount = 30
-        //    };
-
-        //    // Act
-        //    var result = _controller.Post(couponDTO);
-
-        //    // Assert
-        //    Assert.False(result.IsSuccess);
-        //    Assert.Contains("Coupon code already exists", result.Message);
-        //}
-
-
         [Fact]
+        public void Post_AddsCoupon()
+        {
+            // Arrange
+            ClearDatabase();
+            SetupControllerContext("ADMIN"); // Ensure ADMIN role
+            var couponDTO = new CouponDTO
+            {
+                CouponCode = "10OFF",
+                DiscountAmount = 10,
+                MinAmount = 20
+            };
+
+            var coupon = new Coupon
+            {
+                CouponCode = couponDTO.CouponCode,
+                DiscountAmount = couponDTO.DiscountAmount,
+                MinAmount = couponDTO.MinAmount
+            };
+
+            // Setup mapper to handle both the initial mapping and the return mapping
+            _mockMapper.Setup(m => m.Map<Coupon>(It.Is<CouponDTO>(dto =>
+                dto.CouponCode == couponDTO.CouponCode &&
+                dto.DiscountAmount == couponDTO.DiscountAmount &&
+                dto.MinAmount == couponDTO.MinAmount)))
+                .Returns(coupon);
+
+            _mockMapper.Setup(m => m.Map<CouponDTO>(It.Is<Coupon>(c =>
+                c.CouponCode == coupon.CouponCode &&
+                c.DiscountAmount == coupon.DiscountAmount &&
+                c.MinAmount == coupon.MinAmount)))
+                .Returns(couponDTO);
+
+            //    // Act
+            //    var result = _controller.Post(couponDTO);
+
+            //    // Assert
+            //    Assert.True(result.IsSuccess, $"Expected IsSuccess to be True but got False. Message: {result.Message}");
+            //    Assert.Equal(couponDTO, result.Result);
+
+            //    var savedCoupon = _dbContext.Coupons.FirstOrDefault(c => c.CouponCode == "10OFF");
+            //    Assert.NotNull(savedCoupon);
+            //    Assert.Equal(couponDTO.CouponCode, savedCoupon.CouponCode);
+            //    Assert.Equal(couponDTO.DiscountAmount, savedCoupon.DiscountAmount);
+            //    Assert.Equal(couponDTO.MinAmount, savedCoupon.MinAmount);
+            //}
+
+            //[Fact]
+            //public void Post_NonAdminRole_ReturnsFalse()
+            //{
+            //    // Arrange
+            //    ClearDatabase();
+            //    SetupControllerContext("USER"); // Non-admin role
+            //    var couponDTO = new CouponDTO
+            //    {
+            //        CouponCode = "10OFF",
+            //        DiscountAmount = 10,
+            //        MinAmount = 20
+            //    };
+
+            //    try
+            //    {
+            //        // Act
+            //        var result = _controller.Post(couponDTO);
+
+            //        // Assert
+            //        Assert.False(result.IsSuccess);
+            //        Assert.Contains("Unauthorized", result.Message);
+            //    }
+            //    catch (Exception ex) when (ex is UnauthorizedAccessException)
+            //    {
+            //        // If authorization throws an exception, that's also a valid test case
+            //        Assert.True(true);
+            //    }
+            //    finally
+            //    {
+            //        // Verify no coupon was added
+            //        var savedCoupon = _dbContext.Coupons.FirstOrDefault(c => c.CouponCode == "10OFF");
+            //        Assert.Null(savedCoupon);
+            //    }
+            //}
+
+            //[Fact]
+            //public void Put_UpdatesCoupon()
+            //{
+            //    // Arrange
+            //    ClearDatabase();
+            //    SetupControllerContext("ADMIN"); // Ensure ADMIN role
+            //    var coupon = new Coupon
+            //    {
+            //        CouponId = 1,
+            //        CouponCode = "10OFF",
+            //        DiscountAmount = 10,
+            //        MinAmount = 20
+            //    };
+            //    _dbContext.Coupons.Add(coupon);
+            //    _dbContext.SaveChanges();
+
+            //    var couponDTO = new CouponDTO
+            //    {
+            //        CouponId = coupon.CouponId,
+            //        CouponCode = "20OFF",
+            //        DiscountAmount = 20,
+            //        MinAmount = 40
+            //    };
+
+            //    _mockMapper.Setup(m => m.Map<Coupon>(It.IsAny<CouponDTO>()))
+            //        .Returns(coupon);
+            //    _mockMapper.Setup(m => m.Map<CouponDTO>(It.IsAny<Coupon>()))
+            //        .Returns(couponDTO);
+
+            //    // Act
+            //    var result = _controller.Put(couponDTO);
+
+            //    // Assert
+            //    Assert.True(result.IsSuccess);
+            //    Assert.Equal(couponDTO, result.Result);
+            //    var updatedCoupon = _dbContext.Coupons.Find(1);
+            //    Assert.Equal("20OFF", updatedCoupon.CouponCode);
+            //}
+
+            //[Fact]
+            //public void Put_NonAdminRole_ReturnsFalse()
+            //{
+            //    // Arrange
+            //    ClearDatabase();
+            //    var originalCoupon = new Coupon
+            //    {
+            //        CouponId = 1,
+            //        CouponCode = "10OFF",
+            //        DiscountAmount = 10,
+            //        MinAmount = 20
+            //    };
+            //    _dbContext.Coupons.Add(originalCoupon);
+            //    _dbContext.SaveChanges();
+
+            //    SetupControllerContext("USER"); // Non-admin role
+
+            //    var couponDTO = new CouponDTO
+            //    {
+            //        CouponId = originalCoupon.CouponId,
+            //        CouponCode = "20OFF",
+            //        DiscountAmount = 20,
+            //        MinAmount = 40
+            //    };
+
+            //    try
+            //    {
+            //        // Act
+            //        var result = _controller.Put(couponDTO);
+
+            //        // Assert
+            //        Assert.False(result.IsSuccess);
+            //        Assert.Contains("Unauthorized", result.Message);
+            //    }
+            //    catch (Exception ex) when (ex is UnauthorizedAccessException)
+            //    {
+            //        // If authorization throws an exception, that's also a valid test case
+            //        Assert.True(true);
+            //    }
+            //    finally
+            //    {
+            //        // Verify coupon wasn't modified
+            //        var existingCoupon = _dbContext.Coupons.Find(originalCoupon.CouponId);
+            //        Assert.NotNull(existingCoupon);
+            //        Assert.Equal("10OFF", existingCoupon.CouponCode);
+            //        Assert.Equal(10, existingCoupon.DiscountAmount);
+            //        Assert.Equal(20, existingCoupon.MinAmount);
+            //    }
+            //}
+
+            //[Fact]
+            //public void Delete_RemovesCoupon()
+            //{
+            //    // Arrange
+            //    ClearDatabase();
+            //    var coupon = new Coupon
+            //    {
+            //        CouponId = 1,
+            //        CouponCode = "10OFF",
+            //        DiscountAmount = 10,
+            //        MinAmount = 20
+            //    };
+            //    _dbContext.Coupons.Add(coupon);
+            //    _dbContext.SaveChanges();
+
+            //    // Ensure ADMIN role is set
+            //    SetupControllerContext("ADMIN");
+
+            //    // Act
+            //    var result = _controller.Delete(coupon.CouponId);
+
+            //    // Assert
+            //    Assert.True(result.IsSuccess);
+            //    Assert.Null(_dbContext.Coupons.Find(coupon.CouponId));
+            //}
+
+            //[Fact]
+            //public async Task Delete_NonAdminRole_ReturnsFalse()
+            //{
+            //    // Arrange
+            //    ClearDatabase();
+            //    var coupon = new Coupon
+            //    {
+            //        CouponId = 1,
+            //        CouponCode = "10OFF",
+            //        DiscountAmount = 10,
+            //        MinAmount = 20
+            //    };
+            //    await _dbContext.Coupons.AddAsync(coupon);
+            //    await _dbContext.SaveChangesAsync();
+
+            //    // Set non-admin role
+            //    SetupControllerContext("USER");
+
+            //    try
+            //    {
+            //        // Act
+            //        var result = _controller.Delete(coupon.CouponId);
+
+            //        // Assert
+            //        Assert.False(result.IsSuccess);
+            //        Assert.Contains("Unauthorized", result.Message);
+            //    }
+            //    catch (Exception ex) when (ex is UnauthorizedAccessException)
+            //    {
+            //        // If authorization throws an exception, that's also a valid test case
+            //        Assert.True(true);
+            //    }
+            //    finally
+            //    {
+            //        // Verify coupon wasn't deleted
+            //        var existingCoupon = await _dbContext.Coupons.FindAsync(coupon.CouponId);
+            //        Assert.NotNull(existingCoupon);
+            //        Assert.Equal("10OFF", existingCoupon.CouponCode);
+            //        Assert.Equal(10, existingCoupon.DiscountAmount);
+            //    }
+            //}
+
+            //[Fact]
+            //public void GetByCode_InvalidCode_ReturnsNull()
+            //{
+            //    // Arrange
+            //    ClearDatabase();
+
+            //    // Act
+            //    var result = _controller.GetByCode("INVALID");
+
+            //    // Assert
+            //    Assert.True(result.IsSuccess);
+            //    Assert.Null(result.Result);
+            //}
+
+            //[Fact]
+            //public void Post_DuplicateCouponCode_ReturnsFalse()
+            //{
+            //    // Arrange
+            //    ClearDatabase();
+            //    var existingCoupon = new Coupon
+            //    {
+            //        CouponId = 1,
+            //        CouponCode = "10OFF",
+            //        DiscountAmount = 10,
+            //        MinAmount = 20
+            //    };
+            //    _dbContext.Coupons.Add(existingCoupon);
+            //    _dbContext.SaveChanges();
+
+            //    var couponDTO = new CouponDTO
+            //    {
+            //        CouponCode = "10OFF",
+            //        DiscountAmount = 15,
+            //        MinAmount = 30
+            //    };
+
+            //    // Act
+            //    var result = _controller.Post(couponDTO);
+
+            //    // Assert
+            //    Assert.False(result.IsSuccess);
+            //    Assert.Contains("Coupon code already exists", result.Message);
+            //}
+
+
+            [Fact]
         public void Get_NoAuthorizationRequired_ReturnsSuccess()
         {
             // Arrange
