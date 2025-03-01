@@ -1,4 +1,4 @@
-name: Push Test
+name: CI/CD Pipeline
 
 on:
   push:
@@ -48,3 +48,38 @@ jobs:
         git config --global user.email 'github-actions[bot]@users.noreply.github.com'
         git commit -m "Automated commit after successful tests"
         git push origin master
+
+    - name: Publish build artifacts
+      run: dotnet publish -c Release -o ./publish
+
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: publish
+        path: ./publish
+
+  deploy_staging:
+    runs-on: windows-latest
+    needs: build
+
+    steps:
+    - name: Download build artifacts
+      uses: actions/download-artifact@v2
+      with:
+        name: publish
+
+    - name: Deploy to Staging
+      run: echo "Deploying to Staging environment"
+
+  deploy_production:
+    runs-on: windows-latest
+    needs: deploy_staging
+
+    steps:
+    - name: Download build artifacts
+      uses: actions/download-artifact@v2
+      with:
+        name: publish
+
+    - name: Deploy to Production
+      run: echo "Deploying to Production environment"
