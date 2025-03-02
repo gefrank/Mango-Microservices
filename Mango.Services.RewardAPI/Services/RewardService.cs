@@ -1,8 +1,8 @@
 ﻿using Mango.Services.RewardAPI.Data;
 using Mango.Services.RewardAPI.Message;
 using Mango.Services.RewardAPI.Models;
+using Mango.Services.RewardAPI.Models.DTO;
 using Microsoft.EntityFrameworkCore;
-using System.Text;
 
 namespace Mango.Services.RewardAPI.Services
 {
@@ -32,6 +32,18 @@ namespace Mango.Services.RewardAPI.Services
             catch (Exception ex)
             {
             }
+        }
+
+        public async Task<IEnumerable<RewardsDTO>> GetAllRewardsAsync()
+        {
+            await using var _db = new AppDbContext(_dbOptions);
+            var rewards = await _db.Rewards.ToListAsync();
+            return rewards.Select(r => new RewardsDTO
+            {
+                UserId = r.UserId,
+                RewardsActivity = r.RewardsActivity,
+                OrderId = r.OrderId
+            }).ToList();
         }
     }
 

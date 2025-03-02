@@ -10,6 +10,8 @@ using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.JSInterop;
+using MudBlazor;
+using MudBlazor.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,7 +24,12 @@ builder.Services.AddScoped<IdentityUserAccessor>();
 builder.Services.AddScoped<IdentityRedirectManager>();
 builder.Services.AddScoped<CustomAuthenticationStateProvider>();
 builder.Services.AddScoped<AuthenticationStateProvider>(provider => provider.GetRequiredService<CustomAuthenticationStateProvider>());
-//builder.Services.AddScoped<AuthenticationStateProvider, IdentityRevalidatingAuthenticationStateProvider>();
+
+// Add MudBlazor Services
+builder.Services.AddMudServices(config =>
+{
+    config.SnackbarConfiguration.PositionClass = Defaults.Classes.Position.BottomRight;
+});
 
 builder.Services.AddAuthentication(options =>
     {
@@ -80,12 +87,14 @@ builder.Services.AddHttpClient<IProductService, ProductService>();
 builder.Services.AddHttpClient<ICartService, CartService>();
 builder.Services.AddHttpClient<IOrderService, OrderService>();
 builder.Services.AddHttpClient<IAuthService, AuthService>();
+builder.Services.AddHttpClient<IRewardService, RewardsService>();
 
 SD.CouponAPIBase = builder.Configuration["ServiceUrls:CouponAPI"]!;
 SD.AuthAPIBase = builder.Configuration["ServiceUrls:AuthAPI"]!;
 SD.ProductAPIBase = builder.Configuration["ServiceUrls:ProductAPI"]!;
 SD.ShoppingCartAPIBase = builder.Configuration["ServiceUrls:ShoppingCartAPI"]!;
 SD.OrderAPIBase = builder.Configuration["ServiceUrls:OrderAPI"]!;
+SD.RewardAPIBase = builder.Configuration["ServiceUrls:RewardAPI"]!;
 
 // Register services for use
 builder.Services.AddScoped<IBaseService, BaseService>();
@@ -96,6 +105,7 @@ builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ITokenProvider, TokenProvider>();
 builder.Services.AddScoped<IToastService, ToastService>();
+builder.Services.AddScoped<IRewardService, RewardsService>();
 
 var app = builder.Build();
 

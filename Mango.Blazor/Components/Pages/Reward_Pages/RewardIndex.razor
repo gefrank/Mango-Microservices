@@ -1,0 +1,60 @@
+﻿@page "/reward"
+@page "/Reward/RewardIndex"
+
+@using Mango.Blazor.Models
+@using Mango.Blazor.Service.IService
+@using Mango.Blazor.Models.Enums
+@using Newtonsoft.Json
+@using MudBlazor
+@inject IRewardService RewardsService
+@inject ISnackbar Snackbar
+
+<MudText Typo="Typo.h5" Color="Color.Primary" Class="mb-4">Rewards List</MudText>
+
+<MudPaper Class="pa-4">
+    <MudTable Items="@rewards" Dense="true" Hover="true" Loading="@loading"
+              LoadingProgressColor="Color.Primary">
+        <HeaderContent>
+            <MudTh>User ID</MudTh>
+            <MudTh>Order ID</MudTh>
+            <MudTh>Rewards Activity</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="User ID">@context.UserId</MudTd>
+            <MudTd DataLabel="Order ID">@context.OrderId</MudTd>
+            <MudTd DataLabel="Rewards Activity">
+                @if (context.RewardsActivity > 0)
+                {
+                    <MudChip T="int" Variant="Variant.Filled" Color="Color.Success">@context.RewardsActivity</MudChip>
+                }
+                else
+                {
+                    <MudChip T="int" Variant="Variant.Filled" Color="Color.Error">@context.RewardsActivity</MudChip>
+                }
+            </MudTd>
+        </RowTemplate>
+    </MudTable>
+</MudPaper>
+
+@code {
+    private List<RewardsDTO> rewards = new();
+    private bool loading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            loading = true;
+            var result = await RewardsService.GetAllRewardsAsync();
+            rewards = result.ToList();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error loading rewards: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            loading = false;
+        }
+    }
+}

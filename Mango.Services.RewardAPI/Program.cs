@@ -1,28 +1,69 @@
 using Mango.Services.RewardAPI.Data;
 using Mango.Services.RewardAPI.Services;
-using Mango.Services.RewardAPI.Extension;
+using Mango.Services.RewardAPI.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Mango.Services.RewardAPI.Messaging;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+// Services Zone - BEGIN
 
+// Define the class the implements AppDbContext
 builder.Services.AddDbContext<AppDbContext>(option =>
 {
     option.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
 });
 
+// Setup RewardService
 var optionBuilder = new DbContextOptionsBuilder<AppDbContext>();
 optionBuilder.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
-builder.Services.AddSingleton(new RewardService(optionBuilder.Options));
+var rewardService = new RewardService(optionBuilder.Options);
+builder.Services.AddSingleton(rewardService);
+builder.Services.AddSingleton<IRewardService>(rewardService);
 
 // Singleton because we only want one object for different requests.
 builder.Services.AddSingleton<IAzureServiceBusConsumer, AzureServiceBusConsumer>();
 
 builder.Services.AddControllers();
 
-builder.Services.AddSwaggerGen();
+// Add AutoMapper to the services collection and look for configurations automatically
+builder.Services.AddAutoMapper(typeof(Program));
+
+// Default settings to add Authorization to Swagger
+builder.Services.AddSwaggerGen(option =>
+{
+    option.AddSecurityDefinition(name: JwtBearerDefaults.AuthenticationScheme, securityScheme: new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Description = "Enter the Bearer Authorization string as following: `Bearer Generated-JWT-Token`",
+        In = ParameterLocation.Header,
+        Type = SecuritySchemeType.ApiKey,
+        Scheme = "Bearer"
+    });
+    option.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference= new OpenApiReference
+                {
+                    Type=ReferenceType.SecurityScheme,
+                    Id=JwtBearerDefaults.AuthenticationScheme
+                }
+            }, new string[]{}
+        }
+    });
+});
+
+builder.AddAppAuthentication();
+
+builder.Services.AddAuthorization();
+
+// Services Zone - END
+
+// Middleware Zone - BEGIN
 
 var app = builder.Build();
 
@@ -39,14 +80,16 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseAuthentication();
 app.UseAuthorization();
+// Without this app would ignore wwwroot folder
+app.UseStaticFiles();
 
 app.MapControllers();
 
-ApplyMigration();
+// Middleware Zone - END
 
-// Our AzureServiceBusConsumer will automatically start and stop with the application.
-app.UseAzureServiceBusConsumer();
+ApplyMigration();
 
 app.Run();
 
