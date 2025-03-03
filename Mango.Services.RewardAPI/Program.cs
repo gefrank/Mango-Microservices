@@ -1,5 +1,6 @@
 using Mango.Services.RewardAPI.Data;
 using Mango.Services.RewardAPI.Services;
+using Mango.Services.RewardAPI.Services.IServices;
 using Mango.Services.RewardAPI.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Mango.Services.RewardAPI.Messaging;
@@ -9,17 +10,28 @@ using Microsoft.OpenApi.Models;
 var builder = WebApplication.CreateBuilder(args);
 
 // Services Zone - BEGIN
-
 // Define the class the implements AppDbContext
 builder.Services.AddDbContext<AppDbContext>(option =>
 {
     option.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
 });
 
-// Setup RewardService
+// Add HTTP Client services - Register UserService first
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddHttpClient();
+builder.Services.AddHttpClient<IUserService, UserService>();
+builder.Services.AddScoped<IUserService, UserService>();
+
+// Setup RewardService - UPDATED: Get UserService from DI
 var optionBuilder = new DbContextOptionsBuilder<AppDbContext>();
 optionBuilder.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
-var rewardService = new RewardService(optionBuilder.Options);
+
+// Create a scope to resolve UserService
+var serviceProvider = builder.Services.BuildServiceProvider();
+var userService = serviceProvider.GetRequiredService<IUserService>();
+
+// Create the RewardService with both dependencies
+var rewardService = new RewardService(optionBuilder.Options, userService);
 builder.Services.AddSingleton(rewardService);
 builder.Services.AddSingleton<IRewardService>(rewardService);
 
@@ -27,7 +39,6 @@ builder.Services.AddSingleton<IRewardService>(rewardService);
 builder.Services.AddSingleton<IAzureServiceBusConsumer, AzureServiceBusConsumer>();
 
 builder.Services.AddControllers();
-
 // Add AutoMapper to the services collection and look for configurations automatically
 builder.Services.AddAutoMapper(typeof(Program));
 
@@ -58,13 +69,10 @@ builder.Services.AddSwaggerGen(option =>
 });
 
 builder.AddAppAuthentication();
-
 builder.Services.AddAuthorization();
-
 // Services Zone - END
 
 // Middleware Zone - BEGIN
-
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -79,18 +87,15 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
 app.UseAuthentication();
 app.UseAuthorization();
+
 // Without this app would ignore wwwroot folder
 app.UseStaticFiles();
-
 app.MapControllers();
-
 // Middleware Zone - END
 
 ApplyMigration();
-
 app.Run();
 
 void ApplyMigration()

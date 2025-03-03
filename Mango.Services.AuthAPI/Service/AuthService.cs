@@ -3,6 +3,7 @@ using Mango.Services.AuthAPI.Models;
 using Mango.Services.AuthAPI.Models.DTO;
 using Mango.Services.AuthAPI.Service.IService;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 
 namespace Mango.Services.AuthAPI.Service
 {
@@ -107,6 +108,19 @@ namespace Mango.Services.AuthAPI.Service
 
             }
             return "Error Encountered";
+        }
+
+        public async Task<UserDTO> GetUserById(string userId)
+        {
+            var user = await _db.ApplicationUsers.FirstOrDefaultAsync(u => u.Id == userId);
+            if (user == null) return null;
+
+            return new UserDTO
+            {
+                ID = user.Id,
+                Name = user.UserName,
+                Email = user.Email
+            };
         }
     }
 }

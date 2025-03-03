@@ -2,7 +2,7 @@
 using Azure;
 using Mango.Services.RewardAPI.Models;
 using Mango.Services.RewardAPI.Models.DTO;
-using Mango.Services.RewardAPI.Services;
+using Mango.Services.RewardAPI.Services.IServices;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Mango.Services.RewardAPI.Controllers

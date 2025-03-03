@@ -9,32 +9,105 @@
 @inject IRewardService RewardsService
 @inject ISnackbar Snackbar
 
-<MudText Typo="Typo.h5" Color="Color.Primary" Class="mb-4">Rewards List</MudText>
 
-<MudPaper Class="pa-4">
-    <MudTable Items="@rewards" Dense="true" Hover="true" Loading="@loading"
-              LoadingProgressColor="Color.Primary">
-        <HeaderContent>
-            <MudTh>User ID</MudTh>
-            <MudTh>Order ID</MudTh>
-            <MudTh>Rewards Activity</MudTh>
-        </HeaderContent>
-        <RowTemplate>
-            <MudTd DataLabel="User ID">@context.UserId</MudTd>
-            <MudTd DataLabel="Order ID">@context.OrderId</MudTd>
-            <MudTd DataLabel="Rewards Activity">
-                @if (context.RewardsActivity > 0)
-                {
-                    <MudChip T="int" Variant="Variant.Filled" Color="Color.Success">@context.RewardsActivity</MudChip>
-                }
-                else
-                {
-                    <MudChip T="int" Variant="Variant.Filled" Color="Color.Error">@context.RewardsActivity</MudChip>
-                }
-            </MudTd>
-        </RowTemplate>
-    </MudTable>
-</MudPaper>
+<div class="card shadow border-0 mt-4">
+    <div class="card-header bg-secondary bg-gradient ml-0 py-3">
+        <div class="row">
+            <div class="col-12 text-center">
+                <h1 class="text-white">Rewards List</h1>
+            </div>
+        </div>
+    </div>
+    <div class="card-body p-4">
+        <MudPaper Class="rewards-table-container">
+            <MudTable Items="@rewards" Dense="false" Hover="true" Loading="@loading"
+                      LoadingProgressColor="Color.Primary" Class="custom-table">
+                <HeaderContent>
+                    <MudTh>User Name</MudTh>
+                    <MudTh>Order ID</MudTh>
+                    <MudTh>Rewards Activity</MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd DataLabel="User Name">@context.UserName</MudTd>
+                    <MudTd DataLabel="Order ID">@context.OrderId</MudTd>
+                    <MudTd DataLabel="Rewards Activity">
+                        <div class="reward-points @(context.RewardsActivity > 0 ? "positive" : "negative")">
+                            @context.RewardsActivity
+                        </div>
+                    </MudTd>
+                </RowTemplate>
+            </MudTable>
+        </MudPaper>
+    </div>
+</div>
+
+<style>
+    .rewards-container {
+        padding: 0;
+    }
+
+    .rewards-title {
+        color: #8c65f7;
+        margin-bottom: 1rem;
+        font-size: 1.5rem;
+        font-weight: 500;
+    }
+
+    .rewards-table-container {
+        background-color: #2c3034;
+        border-radius: 0.25rem;
+        overflow: hidden;
+    }
+
+    .custom-table ::deep .mud-table-container {
+        background-color: transparent;
+    }
+
+    .custom-table ::deep .mud-table-head {
+        background-color: #343a40;
+    }
+
+        .custom-table ::deep .mud-table-head th {
+            color: white;
+            font-weight: 500;
+            border-bottom: 2px solid #454d55;
+            padding: 0.75rem;
+        }
+
+    .custom-table ::deep .mud-table-body tr {
+        background-color: #2c3034;
+    }
+
+        .custom-table ::deep .mud-table-body tr:nth-child(odd) {
+            background-color: #212529;
+        }
+
+    .custom-table ::deep .mud-table-body td {
+        border-top: 1px solid #454d55;
+        padding: 0.75rem;
+        vertical-align: middle;
+        color: #fff;
+    }
+
+    .reward-points {
+        display: inline-flex;
+        justify-content: center;
+        align-items: center;
+        width: 35px;
+        height: 35px;
+        border-radius: 50%;
+        color: white;
+        font-weight: 500;
+    }
+
+        .reward-points.positive {
+            background-color: #00ca85;
+        }
+
+        .reward-points.negative {
+            background-color: #dc3545;
+        }
+</style>
 
 @code {
     private List<RewardsDTO> rewards = new();

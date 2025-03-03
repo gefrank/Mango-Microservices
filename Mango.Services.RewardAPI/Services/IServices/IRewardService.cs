@@ -2,7 +2,7 @@
 using Mango.Services.RewardAPI.Message;
 using Mango.Services.RewardAPI.Models.DTO;
 
-namespace Mango.Services.RewardAPI.Services
+namespace Mango.Services.RewardAPI.Services.IServices
 {
     public interface IRewardService
     {

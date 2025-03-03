@@ -2,16 +2,20 @@
 using Mango.Services.RewardAPI.Message;
 using Mango.Services.RewardAPI.Models;
 using Mango.Services.RewardAPI.Models.DTO;
+using Mango.Services.RewardAPI.Services.IServices;
 using Microsoft.EntityFrameworkCore;
+
 
 namespace Mango.Services.RewardAPI.Services
 {
     public class RewardService : IRewardService
     {
         private DbContextOptions<AppDbContext> _dbOptions;
-        public RewardService(DbContextOptions<AppDbContext> dbOptions)
+        private readonly IUserService _userService;
+        public RewardService(DbContextOptions<AppDbContext> dbOptions, IUserService userService)
         {
             _dbOptions = dbOptions;
+            _userService = userService;
         }
 
         public async Task UpdateRewards(RewardsMessage rewardsMessage)
@@ -38,12 +42,21 @@ namespace Mango.Services.RewardAPI.Services
         {
             await using var _db = new AppDbContext(_dbOptions);
             var rewards = await _db.Rewards.ToListAsync();
-            return rewards.Select(r => new RewardsDTO
+
+            var rewardDtos = new List<RewardsDTO>();
+            foreach (var reward in rewards)
             {
-                UserId = r.UserId,
-                RewardsActivity = r.RewardsActivity,
-                OrderId = r.OrderId
-            }).ToList();
+                var userName = await _userService.GetUserNameAsync(reward.UserId);
+                rewardDtos.Add(new RewardsDTO
+                {
+                    UserId = reward.UserId,
+                    UserName = userName,
+                    RewardsActivity = reward.RewardsActivity,
+                    OrderId = reward.OrderId
+                });
+            }
+
+            return rewardDtos;
         }
     }
 
