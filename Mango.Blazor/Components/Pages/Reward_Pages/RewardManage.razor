@@ -1,0 +1,148 @@
+﻿@page "/Reward/RewardManage"
+
+
+
+@using Microsoft.AspNetCore.Components.Web
+@using Mango.Blazor.Models
+@using Mango.Blazor.Service.IService
+@using MudBlazor
+@inject IRewardService RewardsService
+@inject ISnackbar Snackbar
+@inject NavigationManager NavigationManager
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-4">
+    <ErrorBoundary>
+        <ChildContent>
+            <MudCard Elevation="3" Class="pa-4">
+                <MudCardHeader>
+                    <MudText Typo="Typo.h4">Manage Rewards</MudText>
+                </MudCardHeader>
+
+                <MudCardContent>
+                    <MudPaper Class="mt-4">
+                        <MudTable Items="@filteredRewards" Dense="false" Hover="true" Loading="@loading"
+                                  LoadingProgressColor="Color.Primary" Bordered="true" Striped="true"
+                                  Pagination="true">
+                            <HeaderContent>
+                                <MudTh>User Name</MudTh>
+                                <MudTh>Order ID</MudTh>
+                                <MudTh>Points</MudTh>
+                                <MudTh>Status</MudTh>
+                                <MudTh>Expiry Date</MudTh>
+                                <MudTh>Category</MudTh>
+                            </HeaderContent>
+                            <RowTemplate>
+                                <MudTd DataLabel="User Name">@(context.UserName ?? "-")</MudTd>
+                                <MudTd DataLabel="Order ID">@(context.OrderId)</MudTd>
+                                <MudTd DataLabel="Points">
+                                    <div class="reward-points @(context.RewardsActivity > 0 ? "positive" : "negative")">
+                                        @context.RewardsActivity
+                                    </div>
+                                </MudTd>
+                                <MudTd DataLabel="Status">
+                                    @if (!string.IsNullOrEmpty(context.Status))
+                                    {
+                                        <div class="status-badge @context.Status.ToLower()">
+                                            @context.Status
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="status-badge unknown">
+                                            Unknown
+                                        </div>
+                                    }
+                                </MudTd>
+                                <MudTd DataLabel="Expiry Date">
+                                    @(context.ExpiryDate.HasValue ? context.ExpiryDate.Value.ToString("yyyy-MM-dd") : "No Date")
+                                </MudTd>
+                                <MudTd DataLabel="Category">@(context.Category ?? "None")</MudTd>
+                            </RowTemplate>
+                            <PagerContent>
+                                <MudTablePager />
+                            </PagerContent>
+                        </MudTable>
+                    </MudPaper>
+                </MudCardContent>
+            </MudCard>
+        </ChildContent>
+        <ErrorContent>
+            <MudAlert Severity="Severity.Error" Class="my-4">
+                An error occurred: @context.Message
+            </MudAlert>
+        </ErrorContent>
+    </ErrorBoundary>
+</MudContainer>
+
+<style>
+
+    .reward-points {
+        display: inline-flex;
+        justify-content: center;
+        align-items: center;
+        width: 35px;
+        height: 35px;
+        border-radius: 50%;
+        color: white;
+        font-weight: 500;
+    }
+
+        .reward-points.positive {
+            background-color: #00ca85;
+        }
+
+        .reward-points.negative {
+            background-color: #dc3545;
+        }
+
+    .status-badge {
+        display: inline-flex;
+        justify-content: center;
+        align-items: center;
+        padding: 4px 12px;
+        border-radius: 16px;
+        color: white;
+        font-weight: 500;
+        font-size: 0.875rem;
+    }
+
+        .status-badge.active {
+            background-color: #198754;
+        }
+
+        .status-badge.redeemed {
+            background-color: #0d6efd;
+        }
+
+        .status-badge.expired {
+            background-color: #dc3545;
+        }
+
+        .status-badge.unknown {
+            background-color: #6c757d;
+        }
+</style>
+
+@code {
+    private List<RewardsDTO> filteredRewards = new();
+    private bool loading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            loading = true;
+            var result = await RewardsService.GetAllRewardsAsync();
+            filteredRewards = result.ToList();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error loading rewards: {ex.Message}", Severity.Error);
+            filteredRewards = new List<RewardsDTO>();
+        }
+        finally
+        {
+            loading = false;
+        }
+    }
+}

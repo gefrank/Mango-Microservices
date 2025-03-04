@@ -19,7 +19,7 @@ namespace Mango.Blazor.Service
             var response = await _baseService.SendAsync(new RequestDTO()
             {
                 ApiType = SD.ApiType.GET,
-                Url = SD.RewardAPIBase + "/api/reward" // Changed to match controller route
+                Url = SD.RewardAPIBase + "/api/reward" 
             });
 
             if (response != null && response.IsSuccess)
