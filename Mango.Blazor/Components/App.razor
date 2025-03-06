@@ -31,23 +31,21 @@
     <link rel="stylesheet" href="css/site.css" /> <!-- Ensure this is loaded last -->
     <ImportMap />
     <link rel="icon" type="image/png" href="favicon.png" />
-    <HeadOutlet @rendermode="PageRenderMode" />
+    <HeadOutlet @rendermode="InteractiveServer" />
 </head>
 
 <body>
     @* MudThemeProvider manages thememing for all Blazor components  *@
     <MudThemeProvider />
-    @* MudDialogProvider Required for any modal dialogs *@
-    <MudDialogProvider />
     @* Required for SnackBar, brief notification message *@
-    <MudSnackbarProvider />    
+    <MudSnackbarProvider />
 
-    <Routes @rendermode="PageRenderMode" />
+    <Routes @rendermode="InteractiveServer" />
     <script src="_framework/blazor.web.js"></script>
+    <script src="_content/MudBlazor/MudBlazor.min.js"></script>
     <script src="/js/cookieHelper.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js" integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
-    <script src="_content/MudBlazor/MudBlazor.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.1.4/toastr.min.js"></script>
 
 

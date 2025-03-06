@@ -1,0 +1,215 @@
+﻿@using MudBlazor
+@using Mango.Blazor.Models
+@inject IDialogService DialogService
+
+<MudDialog Options="dialogOptions" Class="mud-dialog">
+    <TitleContent>
+        <MudText Typo="Typo.h5" Class="mb-2">@((Reward?.Id ?? 0) == 0 ? "Add New Reward" : "Edit Reward")</MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudCard Elevation="0" Class="pa-0">
+            <MudCardContent>
+                <MudForm @ref="form" @bind-IsValid="@formValid">
+                    <MudSelect T="string" 
+                               @bind-Value="Reward.UserId" 
+                               Label="User" 
+                               Required="true"
+                               RequiredError="User is required!"
+                               Variant="Variant.Outlined" 
+                               AnchorOrigin="Origin.BottomCenter"
+                               Class="mb-3">
+                        @foreach (var user in users)
+                        {
+                            <MudSelectItem Value="@user.ID">@user.Name</MudSelectItem>
+                        }
+                    </MudSelect>
+                    
+                    <MudNumericField @bind-Value="Reward.RewardsActivity" 
+                                   Label="Points" 
+                                   Required="true"
+                                   RequiredError="Points value is required!"
+                                   Variant="Variant.Outlined" 
+                                   Min="-100" 
+                                   Max="1000" 
+                                   Class="mb-3" />
+
+                    <MudTextField @bind-Value="Reward.OrderId" 
+                               Label="Order ID" 
+                               Variant="Variant.Outlined"
+                               Required="true"
+                               RequiredError="Order ID is required!"
+                               Class="mb-3" />
+
+                    <MudSelect T="string" 
+                              @bind-Value="Reward.Status" 
+                              Label="Status" 
+                              Required="true" 
+                              RequiredError="Status is required!"
+                              Variant="Variant.Outlined" 
+                              AnchorOrigin="Origin.BottomCenter"
+                              Class="mb-3">
+                        <MudSelectItem Value="@RewardStatusEnum.Active.ToString()">Active</MudSelectItem>
+                        <MudSelectItem Value="@RewardStatusEnum.Redeemed.ToString()">Redeemed</MudSelectItem>
+                        <MudSelectItem Value="@RewardStatusEnum.Expired.ToString()">Expired</MudSelectItem>
+                    </MudSelect>
+
+                    <MudDatePicker @bind-Date="Reward.ExpiryDate" 
+                                Label="Expiry Date"
+                                Variant="Variant.Outlined" 
+                                Placeholder="Select a date" 
+                                DateFormat="yyyy-MM-dd"
+                                Class="mb-3" />
+
+                    <MudSelect T="string" 
+                              @bind-Value="Reward.Category" 
+                              Label="Category" 
+                              Required="true" 
+                              RequiredError="Category is required!"
+                              Variant="Variant.Outlined" 
+                              AnchorOrigin="Origin.BottomCenter"
+                              Class="mb-3">
+                        <MudSelectItem Value="@RewardCategoryEnum.Purchase.ToString()">Purchase</MudSelectItem>
+                        <MudSelectItem Value="@RewardCategoryEnum.Referral.ToString()">Referral</MudSelectItem>
+                        <MudSelectItem Value="@RewardCategoryEnum.Loyalty.ToString()">Loyalty</MudSelectItem>
+                        <MudSelectItem Value="@RewardCategoryEnum.Promotion.ToString()">Promotion</MudSelectItem>
+                    </MudSelect>
+
+                    <MudTextField @bind-Value="Reward.Description" 
+                               Label="Description"
+                               Variant="Variant.Outlined" 
+                               Lines="3" 
+                               Class="mb-1" />
+                </MudForm>
+            </MudCardContent>
+        </MudCard>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel" Color="Color.Secondary" Variant="Variant.Outlined" Class="mx-1" Size="Size.Medium">Cancel</MudButton>
+        <MudButton OnClick="Submit" 
+                  Color="Color.Primary" 
+                  Variant="Variant.Filled" 
+                  Size="Size.Medium"
+                  StartIcon="@Icons.Material.Filled.Save"
+                  Disabled="@(!formValid)">Save</MudButton>
+    </DialogActions>
+</MudDialog>
+
+<style>
+
+    .mud-dialog {
+        background-color: #212529;
+        color: white;
+    }
+
+    /* Target the actual input element */
+    .mud-input-slot {
+        color: white !important;
+    }
+
+    /* Target the label element */
+    .mud-input-label {
+        color: white !important;
+    }
+
+    /* Target the fieldset legend */
+    .mud-input-outlined-border legend {
+        color: white !important;
+    }
+
+    /* Target the numeric spin buttons */
+    .mud-button-label svg {
+        color: white !important;
+    }
+
+    /* Target the outlined border */
+    .mud-input-outlined-border {
+        border-color: rgba(255, 255, 255, 0.3) !important;
+    }
+
+    /* Style for the popover paper (dropdown container) */
+    .mud-popover-paper {
+        background-color: #2c3034 !important;
+    }
+
+    /* Style for list items in dropdowns */
+    .mud-list-item {
+        color: white !important;
+    }
+
+        /* Style for hover state of list items */
+        .mud-list-item:hover {
+            background-color: rgba(255, 255, 255, 0.08) !important;
+        }
+
+    /* Style for selected items in the dropdown */
+    .mud-selected-item {
+        color: white !important;
+        background-color: rgba(25, 118, 210, 0.3) !important;
+    }
+
+    /* Style for the date picker dropdown */
+    .mud-picker-container {
+        background-color: #2c3034 !important;
+        color: white !important;
+    }
+
+    /* Style for calendar days */
+    .mud-picker-calendar-day {
+        color: white !important;
+    }
+
+    /* Style for calendar header */
+    .mud-picker-calendar-header {
+        color: white !important;
+    }
+
+
+</style>
+
+@code {
+    [CascadingParameter]
+    private IMudDialogInstance MudDialog { get; set; }
+
+    [Parameter]
+    public RewardsDTO Reward { get; set; }
+
+    private MudForm form;
+    private bool formValid;
+
+    private void Submit() => MudDialog.Close(DialogResult.Ok(true));
+
+    private void Cancel() => MudDialog.Cancel();
+
+    private DialogOptions dialogOptions = new()
+    {
+        FullWidth = true,
+        CloseButton = true,
+        Position = DialogPosition.Center,
+        MaxWidth = MaxWidth.Medium,
+        BackdropClick = false ,
+        // Use MudBlazor's built-in dark theme
+        BackgroundClass = "mud-theme-dark"
+    };
+
+    private List<UserDTO> users = new List<UserDTO>
+    {
+        new UserDTO { ID = "1", Name = "User1" },
+        new UserDTO { ID = "2", Name = "User2" }
+    };
+
+    public enum RewardStatusEnum
+    {
+        All,
+        Active,
+        Redeemed,
+        Expired
+    }
+
+    public enum RewardCategoryEnum
+    {
+        Purchase,
+        Referral,
+        Loyalty,
+        Promotion
+    }
+}

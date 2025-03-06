@@ -12,9 +12,11 @@
 
     <Notifications />
     <!--This needs to be added here in order for MudBlazor to work properly
-        The MudPopoverProvider specifically needs to be in the same "rendering tree" 
+        The MudPopoverProvider specifically needs to be in the same "rendering tree"
         as the components that use it-->
     <MudPopoverProvider />
+    @* Needed for dialogs *@
+    <MudDialogProvider />
 </div>
 
 <div id="blazor-error-ui" data-nosnippet>

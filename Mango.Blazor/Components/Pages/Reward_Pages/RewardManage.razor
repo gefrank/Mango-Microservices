@@ -1,12 +1,11 @@
 ﻿@page "/Reward/RewardManage"
 
-
-
 @using Microsoft.AspNetCore.Components.Web
 @using Mango.Blazor.Models
 @using Mango.Blazor.Service.IService
 @using MudBlazor
 @inject IRewardService RewardsService
+@inject IDialogService DialogService
 @inject ISnackbar Snackbar
 @inject NavigationManager NavigationManager
 
@@ -64,6 +63,9 @@
                         </MudTable>
                     </MudPaper>
                 </MudCardContent>
+                <MudCardActions Class="justify-end">
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" @onclick="() => OpenDialogAsync(new RewardsDTO())">Add New Reward</MudButton>
+                </MudCardActions>
             </MudCard>
         </ChildContent>
         <ErrorContent>
@@ -126,6 +128,9 @@
 @code {
     private List<RewardsDTO> filteredRewards = new();
     private bool loading = true;
+    private RewardStatusEnum statusFilter = RewardStatusEnum.All;
+    private bool dialogVisible = false;
+    private RewardsDTO editingReward = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -145,4 +150,19 @@
             loading = false;
         }
     }
+
+    public enum RewardStatusEnum
+    {
+        All,
+        Active,
+        Redeemed,
+        Expired
+    }
+
+    private Task OpenDialogAsync(RewardsDTO reward)
+    {     
+        var parameters = new DialogParameters { ["Reward"] = reward };
+        return DialogService.ShowAsync<RewardUpsertDialog>("Reward", parameters);
+    }
+
 }
