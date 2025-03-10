@@ -6,5 +6,6 @@ namespace Mango.Blazor.Service.IService
     {
         Task<IEnumerable<RewardsDTO>> GetAllRewardsAsync();
         Task UpdateRewards(RewardsDTO rewardsDto);
+        Task AddRewards(RewardsDTO rewardsDto);
     }
 }

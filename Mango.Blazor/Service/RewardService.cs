@@ -2,6 +2,7 @@
 using Mango.Blazor.Service.IService;
 using Mango.Blazor.Utility;
 using Newtonsoft.Json;
+using System.Net.Http;
 
 namespace Mango.Blazor.Service
 {
@@ -31,6 +32,23 @@ namespace Mango.Blazor.Service
 
         public async Task UpdateRewards(RewardsDTO rewardsDto)
         {
+            // TODO
+            var response = await _baseService.SendAsync(new RequestDTO()
+            {
+                ApiType = SD.ApiType.PUT,
+                Data = rewardsDto,
+                Url = SD.RewardAPIBase + "/api/rewards" // Changed to match controller route
+            });
+
+            if (response == null || !response.IsSuccess)
+            {
+                throw new Exception(response?.Message ?? "Failed to update rewards");
+            }
+        }
+
+        public async Task AddRewards(RewardsDTO rewardsDto)
+        {
+            // TODO
             var response = await _baseService.SendAsync(new RequestDTO()
             {
                 ApiType = SD.ApiType.POST,
@@ -43,5 +61,7 @@ namespace Mango.Blazor.Service
                 throw new Exception(response?.Message ?? "Failed to update rewards");
             }
         }
+
+
     }
 }

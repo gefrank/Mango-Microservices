@@ -49,6 +49,7 @@ namespace Mango.Services.RewardAPI.Services
                 var userName = await _userService.GetUserNameAsync(reward.UserId);
                 rewardDtos.Add(new RewardsDTO
                 {
+                    Id = reward.Id,
                     UserId = reward.UserId,
                     UserName = userName,
                     RewardsActivity = reward.RewardsActivity,

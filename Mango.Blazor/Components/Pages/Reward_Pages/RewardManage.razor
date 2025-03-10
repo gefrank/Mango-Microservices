@@ -29,6 +29,7 @@
                                 <MudTh>Status</MudTh>
                                 <MudTh>Expiry Date</MudTh>
                                 <MudTh>Category</MudTh>
+                                <MudTh></MudTh>
                             </HeaderContent>
                             <RowTemplate>
                                 <MudTd DataLabel="User Name">@(context.UserName ?? "-")</MudTd>
@@ -56,6 +57,16 @@
                                     @(context.ExpiryDate.HasValue ? context.ExpiryDate.Value.ToString("yyyy-MM-dd") : "No Date")
                                 </MudTd>
                                 <MudTd DataLabel="Category">@(context.Category ?? "None")</MudTd>
+                                <MudTd DataLabel="Actions">
+                                    <div class="d-inline-flex gap-2">
+                                        <MudButton Variant="Variant.Filled" Color="Color.Success" Class="btn-md" OnClick="() => OpenDialogAsync(context)"> 
+                                            Edit
+                                        </MudButton>
+                                        <MudButton Variant="Variant.Filled" Color="Color.Error" Class="btn-md" OnClick="() => HandleDelete(context.Id)">
+                                            Delete
+                                        </MudButton>
+                                    </div>
+                                </MudTd>
                             </RowTemplate>
                             <PagerContent>
                                 <MudTablePager />
@@ -123,6 +134,14 @@
         .status-badge.unknown {
             background-color: #6c757d;
         }
+
+    .btn-md {
+        font-size: 0.875rem;                     
+        min-width: 65px; 
+        max-width: 60px; 
+        height: 30px; 
+        text-align: left;         
+    }
 </style>
 
 @code {
@@ -160,9 +179,33 @@
     }
 
     private Task OpenDialogAsync(RewardsDTO reward)
-    {     
+    {  
         var parameters = new DialogParameters { ["Reward"] = reward };
         return DialogService.ShowAsync<RewardUpsertDialog>("Reward", parameters);
     }
 
+    private async Task HandleDelete(int rewardId)
+    {
+        var parameters = new DialogParameters();
+        var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Small, FullWidth = true };
+        var dialog = DialogService.Show<DeleteRewardConfirmationDialog>("Confirm Delete", parameters, options);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            try
+            {
+                // Call the delete service method
+                // var result = await RewardsService.DeleteRewardsAsync(rewardId);
+                Snackbar.Add("Reward deleted successfully", Severity.Success);
+
+                // Refresh rewards list
+                await OnInitializedAsync();
+            }
+            catch (Exception ex)
+            {
+                Snackbar.Add($"Error deleting reward: {ex.Message}", Severity.Error);
+            }
+        }
+    }
 }
