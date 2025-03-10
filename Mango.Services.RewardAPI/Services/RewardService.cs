@@ -1,4 +1,5 @@
-﻿using Mango.Services.RewardAPI.Data;
+﻿using AutoMapper;
+using Mango.Services.RewardAPI.Data;
 using Mango.Services.RewardAPI.Message;
 using Mango.Services.RewardAPI.Models;
 using Mango.Services.RewardAPI.Models.DTO;
@@ -12,22 +13,40 @@ namespace Mango.Services.RewardAPI.Services
     {
         private DbContextOptions<AppDbContext> _dbOptions;
         private readonly IUserService _userService;
-        public RewardService(DbContextOptions<AppDbContext> dbOptions, IUserService userService)
+        private readonly IMapper _mapper;
+
+        // New constructor specifically for service bus usage
+        // This constructor doesn't require IUserService since it's only needed for GetAllRewardsAsync
+        public RewardService(DbContextOptions<AppDbContext> dbOptions, IMapper mapper)
+        {
+            _dbOptions = dbOptions;
+            _mapper = mapper;
+            _userService = null; // Will be null, but UpdateRewards method doesn't use it
+        }
+
+        public RewardService(DbContextOptions<AppDbContext> dbOptions, IUserService userService, IMapper mapper)
         {
             _dbOptions = dbOptions;
             _userService = userService;
+            _mapper = mapper;
         }
 
         public async Task UpdateRewards(RewardsMessage rewardsMessage)
         {
             try
             {
+                if (rewardsMessage == null)
+                {
+                    throw new ArgumentNullException(nameof(rewardsMessage));
+                }
+
                 Rewards rewards = new()
                 {
                     OrderId = rewardsMessage.OrderId,
                     RewardsActivity = rewardsMessage.RewardsActivity,
                     UserId = rewardsMessage.UserId,
-                    RewardsDate = DateTime.Now
+                    RewardsDate = DateTime.Now,
+                    Status = "Active"  // Add this line to set Status to "Active"
                 };
                 await using var _db = new AppDbContext(_dbOptions);
                 await _db.Rewards.AddAsync(rewards);
@@ -35,6 +54,8 @@ namespace Mango.Services.RewardAPI.Services
             }
             catch (Exception ex)
             {
+                // Re-throw the exception to be handled by the caller
+                throw;
             }
         }
 
@@ -43,21 +64,42 @@ namespace Mango.Services.RewardAPI.Services
             await using var _db = new AppDbContext(_dbOptions);
             var rewards = await _db.Rewards.ToListAsync();
 
-            var rewardDtos = new List<RewardsDTO>();
-            foreach (var reward in rewards)
+            var rewardDtos = _mapper.Map<IEnumerable<RewardsDTO>>(rewards).ToList();
+
+            // Populate UserNames after mapping since it comes from a different service
+            foreach (var rewardDto in rewardDtos)
             {
-                var userName = await _userService.GetUserNameAsync(reward.UserId);
-                rewardDtos.Add(new RewardsDTO
-                {
-                    Id = reward.Id,
-                    UserId = reward.UserId,
-                    UserName = userName,
-                    RewardsActivity = reward.RewardsActivity,
-                    OrderId = reward.OrderId
-                });
+                rewardDto.UserName = await _userService.GetUserNameAsync(rewardDto.UserId);
             }
 
             return rewardDtos;
+        }
+
+        public async Task UpsertReward(RewardsDTO rewardsDto)
+        {
+            await using var _db = new AppDbContext(_dbOptions);
+
+            if (rewardsDto.Id == 0)
+            {
+                // Handle new reward
+                var reward = _mapper.Map<Rewards>(rewardsDto);
+                reward.CreatedDate = DateTime.Now;
+                reward.RewardsDate = DateTime.Now;
+                await _db.Rewards.AddAsync(reward);
+            }
+            else
+            {
+                // Handle existing reward
+                var existingReward = await _db.Rewards.FirstOrDefaultAsync(r => r.Id == rewardsDto.Id);
+                if (existingReward == null)
+                {
+                    throw new KeyNotFoundException($"Reward with Id {rewardsDto.Id} not found");
+                }
+
+                _mapper.Map(rewardsDto, existingReward);
+            }
+
+            await _db.SaveChangesAsync();
         }
     }
 

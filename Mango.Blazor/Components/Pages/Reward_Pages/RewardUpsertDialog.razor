@@ -65,8 +65,7 @@
 
                     <MudSelect T="string"
                                @bind-Value="Reward.Category"
-                               Label="Category"
-                               Required="true"
+                               Label="Category"                     
                                RequiredError="Category is required!"
                                Variant="Variant.Outlined"
                                AnchorOrigin="Origin.BottomCenter"
@@ -179,14 +178,7 @@
 
     private async Task Submit()
     {
-        if (Reward.Id == 0)
-        {
-            await RewardsService.AddRewards(Reward);
-        }
-        else
-        {
-            await RewardsService.UpdateRewards(Reward);
-        }
+        await RewardsService.UpsertReward(Reward);
         MudDialog.Close(DialogResult.Ok(true));
     }
 

@@ -8,5 +8,6 @@ namespace Mango.Services.RewardAPI.Services.IServices
     {
         Task<IEnumerable<RewardsDTO>> GetAllRewardsAsync();
         Task UpdateRewards(RewardsMessage rewardsMessage);
+        Task UpsertReward(RewardsDTO rewardsDto);
     }
 }

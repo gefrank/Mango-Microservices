@@ -30,38 +30,29 @@ namespace Mango.Blazor.Service
             return new List<RewardsDTO>();
         }
 
-        public async Task UpdateRewards(RewardsDTO rewardsDto)
+        public async Task UpsertReward(RewardsDTO rewardsDto)
         {
-            // TODO
-            var response = await _baseService.SendAsync(new RequestDTO()
-            {
-                ApiType = SD.ApiType.PUT,
-                Data = rewardsDto,
-                Url = SD.RewardAPIBase + "/api/rewards" // Changed to match controller route
-            });
-
-            if (response == null || !response.IsSuccess)
-            {
-                throw new Exception(response?.Message ?? "Failed to update rewards");
-            }
-        }
-
-        public async Task AddRewards(RewardsDTO rewardsDto)
-        {
-            // TODO
             var response = await _baseService.SendAsync(new RequestDTO()
             {
                 ApiType = SD.ApiType.POST,
                 Data = rewardsDto,
-                Url = SD.RewardAPIBase + "/api/rewards" // Changed to match controller route
+                Url = SD.RewardAPIBase + "/api/reward/upsert"  // Match the controller route
             });
 
             if (response == null || !response.IsSuccess)
             {
-                throw new Exception(response?.Message ?? "Failed to update rewards");
+                throw new Exception(response?.Message ?? "Failed to upsert reward");
             }
         }
 
+        public async Task<ResponseDTO?> DeleteRewardAsync(int id)
+        {
+            return await _baseService.SendAsync(new RequestDTO()
+            {
+                ApiType = SD.ApiType.DELETE,
+                Url = SD.RewardAPIBase + "/api/reward/" + id
+            });
+        }
 
     }
 }

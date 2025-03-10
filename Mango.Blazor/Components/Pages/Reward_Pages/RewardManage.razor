@@ -179,7 +179,7 @@
     }
 
     private Task OpenDialogAsync(RewardsDTO reward)
-    {  
+    {
         var parameters = new DialogParameters { ["Reward"] = reward };
         return DialogService.ShowAsync<RewardUpsertDialog>("Reward", parameters);
     }
@@ -196,9 +196,18 @@
             try
             {
                 // Call the delete service method
-                // var result = await RewardsService.DeleteRewardsAsync(rewardId);
-                Snackbar.Add("Reward deleted successfully", Severity.Success);
+                var response = await RewardsService.DeleteRewardAsync(rewardId);
 
+
+                if (response != null && response.IsSuccess)
+                {
+                    Snackbar.Add("Reward deleted successfully", Severity.Success);
+                }
+                else
+                {
+                    Snackbar.Add($"Error deleting reward: {response?.Message}", Severity.Error);                
+                }
+                
                 // Refresh rewards list
                 await OnInitializedAsync();
             }

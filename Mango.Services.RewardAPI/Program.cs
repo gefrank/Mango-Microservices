@@ -1,10 +1,11 @@
+using AutoMapper;
 using Mango.Services.RewardAPI.Data;
+using Mango.Services.RewardAPI.Extensions;
+using Mango.Services.RewardAPI.Messaging;
 using Mango.Services.RewardAPI.Services;
 using Mango.Services.RewardAPI.Services.IServices;
-using Mango.Services.RewardAPI.Extensions;
-using Microsoft.EntityFrameworkCore;
-using Mango.Services.RewardAPI.Messaging;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -30,10 +31,20 @@ optionBuilder.UseSqlServer(builder.Configuration.GetConnectionString("DefaultCon
 var serviceProvider = builder.Services.BuildServiceProvider();
 var userService = serviceProvider.GetRequiredService<IUserService>();
 
-// Create the RewardService with both dependencies
-var rewardService = new RewardService(optionBuilder.Options, userService);
-builder.Services.AddSingleton(rewardService);
-builder.Services.AddSingleton<IRewardService>(rewardService);
+// For the service bus
+builder.Services.AddSingleton<RewardService>(provider =>
+    new RewardService(
+        optionBuilder.Options,
+        provider.GetRequiredService<IMapper>()
+    ));
+
+// Keep your existing registration for controllers and other components
+builder.Services.AddScoped<IRewardService, RewardService>(provider =>
+    new RewardService(
+        optionBuilder.Options,
+        provider.GetRequiredService<IUserService>(),
+        provider.GetRequiredService<IMapper>()
+    ));
 
 // Singleton because we only want one object for different requests.
 builder.Services.AddSingleton<IAzureServiceBusConsumer, AzureServiceBusConsumer>();
